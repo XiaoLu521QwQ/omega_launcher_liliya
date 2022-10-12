@@ -2,7 +2,7 @@
 
 account: # 账号相关
   uin: [QQ账号] # QQ账号
-  password:  [QQ密码] # 密码为空时使用扫码登录
+  password: [QQ密码] # 密码为空时使用扫码登录
   encrypt: false  # 是否开启密码加密
   status: 0      # 在线状态 请参考 https://docs.go-cqhttp.org/guide/config.html#在线状态
   relogin: # 重连设置
@@ -94,8 +94,6 @@ servers:
   # 正向WS设置
   - ws:
       # 正向WS服务器监听地址
-      host: 127.0.0.1
-      # 正向WS服务器监听端口
-      port: 6700
+      address: 127.0.0.1:6700
       middlewares:
         <<: *default # 引用默认中间件

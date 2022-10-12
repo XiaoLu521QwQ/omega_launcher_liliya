@@ -40,6 +40,7 @@ func main() {
 	// 询问是否需要更新，以适配不同版本的FB
 	pterm.Info.Printf("需要从官网下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
 	if utils.GetInputYN() {
+		pterm.Warning.Println("正在从官网获取更新信息...")
 		targetHash := GetRemoteOmegaHash()
 		currentHash := GetCurrentOmegaHash()
 		//fmt.Println(targetHash)
@@ -71,8 +72,9 @@ func CQHttpEnablerHelper() {
 		panic(err)
 	}
 	configFile := path.Join(GetCurrentDir(), "config.yml")
-	omegaConfigFile := path.Join(GetCurrentDir(), "omega_storage", "配置", "组件-群服互通-1.json")
+	omegaConfigFile := path.Join(GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json")
 	if !utils.IsFile(configFile) {
+		pterm.Warning.Println("请注意，你只能通过上传config.yml与device.json的方式来为服务器配置群服互通")
 		pterm.Info.Printf("请输入QQ账号: ")
 		Code := utils.GetValidInput()
 		pterm.Info.Printf("请输入QQ密码（想扫码登录则留空）: ")
@@ -88,9 +90,9 @@ func CQHttpEnablerHelper() {
 		GroupCode := utils.GetValidInput()
 		groupCfgStr := strings.ReplaceAll(string(defaultQGroupLinkConfigByte), "[群号]", GroupCode)
 		utils.WriteFileData(omegaConfigFile, []byte(groupCfgStr))
+	} else {
+		pterm.Success.Println("尝试使用config.yml与device.json来配置群服互通")
 	}
-	pterm.Warning.Println("将使用 " + configFile + " 的配置进行 QQ 登录，您可以自行修改这份文件")
-	pterm.Warning.Println("将使用 " + omegaConfigFile + " 的配置进行群服互通，您可以自行修改这份文件")
 	RunCQHttp()
 }
 
@@ -138,6 +140,7 @@ func RunCQHttp() {
 	}()
 	WaitConnect()
 	pterm.Success.Println("CQ-Http已经成功启动了！")
+	pterm.Info.Println("将config.yml与device.json上传至服务器即可配置群服互通")
 }
 
 func LoadCurrentFBToken() string {
@@ -158,7 +161,7 @@ func LoadCurrentFBToken() string {
 func RequestToken() string {
 	currentFbToken := LoadCurrentFBToken()
 	if currentFbToken != "" && strings.HasPrefix(currentFbToken, "w9/BeLNV/9") {
-		pterm.Info.Printf("要使用现有的 Fastbuilder 账户登录吗?  使用现有账户请输入 y ,使用新账户请输入 n: ")
+		pterm.Info.Printf("要使用现有的 Fastbuilder 账户登录吗?  使用现有账户请输入 y , 使用新账户请输入 n: ")
 		if utils.GetInputYN() {
 			return currentFbToken
 		}
@@ -166,8 +169,8 @@ func RequestToken() string {
 	pterm.Info.Printf("请输入 Fastbuilder 账号/或者输入 Token: ")
 	Code := utils.GetValidInput()
 	if strings.HasPrefix(Code, "w9/BeLNV/9") {
-		pterm.Success.Printfln("您输入的是 Token, 因此无需输入密码了")
-		time.Sleep(time.Second)
+		// pterm.Success.Printfln("您输入的是 Token, 因此无需输入密码了")
+		// time.Sleep(time.Second)
 		return Code
 	}
 	pterm.Info.Printf("请输入 Fastbuilder 密码: ")
@@ -186,13 +189,20 @@ func RequestToken() string {
 
 func FBTokenSetup(cfg *BotConfig) {
 	if cfg.FBToken != "" {
-		pterm.Info.Printf("要使用上次的 Fastbuilder 账号登录吗?  要请输入 y ,需要修改请输入 n: ")
+		pterm.Info.Printf("要使用上次的 Fastbuilder 账号登录吗?  要请输入 y , 需要修改请输入 n: ")
 		if utils.GetInputYN() {
 			return
 		}
 	}
 	newToken := RequestToken()
 	cfg.FBToken = newToken
+}
+
+func RentalServerSetup(cfg *BotConfig) {
+	pterm.Info.Printf("请输入租赁服账号: ")
+	cfg.RentalCode = utils.GetValidInput()
+	pterm.Info.Printf("请输入租赁服密码（没有则留空）: ")
+	cfg.RentalPasswd = utils.GetInput()
 }
 
 func StartOmegaHelper() {
@@ -206,8 +216,12 @@ func StartOmegaHelper() {
 		pterm.Info.Printf("要使用和上次完全相同的配置启动吗?  要请输入 y, 不要请输入 n : ")
 		if utils.GetInputYN() {
 			// 群服互通
-			if botConfig.QGroupLinkEnable && utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
-				CQHttpEnablerHelper()
+			if botConfig.QGroupLinkEnable {
+				if utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
+					CQHttpEnablerHelper()
+				} else {
+					pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
+				}
 			}
 			Run(botConfig)
 			return
@@ -216,26 +230,29 @@ func StartOmegaHelper() {
 	// 配置FB
 	FBTokenSetup(botConfig)
 	// 配置租赁服登录
-	pterm.Info.Printf("请输入租赁服账号: ")
-	botConfig.RentalCode = utils.GetValidInput()
-	pterm.Info.Printf("请输入租赁服密码（没有则留空）: ")
-	botConfig.RentalPasswd = utils.GetInput()
+	if botConfig.RentalCode != "" {
+		pterm.Info.Printf("要使用上次的租赁服配置吗?  要请输入 y, 不要请输入 n : ")
+		if !utils.GetInputYN() {
+			RentalServerSetup(botConfig)
+		}
+	} else {
+		RentalServerSetup(botConfig)
+	}
 	// 询问是否使用Omega
 	pterm.Info.Printf("要启动 Omega 还是 Fastbuilder?  启动 Omega 请输入 y, 启动 Fastbuilder 请输入 n: ")
 	if utils.GetInputYN() {
 		botConfig.StartOmega = true
 		// 配置群服互通
-		pterm.Info.Printf("要启用群服互通吗?  要请输入 y, 不要请输入 n ")
-		if utils.GetInputYN() {
-			if utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
+		if utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
+			pterm.Info.Printf("要启用群服互通吗?  要请输入 y, 不要请输入 n: ")
+			if utils.GetInputYN() {
 				CQHttpEnablerHelper()
 				botConfig.QGroupLinkEnable = true
 			}
 		} else {
+			pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
 			botConfig.QGroupLinkEnable = false
 		}
-	} else {
-		botConfig.StartOmega = false
 	}
 	// 将本次配置写入文件
 	if err := utils.WriteJsonData(path.Join(GetCurrentDir(), "服务器登录配置.json"), botConfig); err != nil {
