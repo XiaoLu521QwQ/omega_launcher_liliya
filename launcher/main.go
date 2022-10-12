@@ -109,7 +109,8 @@ func WaitConnect() {
 }
 
 func RunCQHttp() {
-	cmd := exec.Command(GetCqHttpExec())
+	args := []string{"faststart"}
+	cmd := exec.Command(GetCqHttpExec(), args...)
 	cqHttpOut, err := cmd.StdoutPipe()
 	if err != nil {
 		panic(err)
