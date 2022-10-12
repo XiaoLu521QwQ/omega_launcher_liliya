@@ -26,8 +26,6 @@ go run omega_release/compressor/main.go -in ./pre-release/fastbuilder-windows.ex
 go run omega_release/compressor/main.go -in ./pre-release/fastbuilder-macos  -out ./pre-release/fastbuilder-macos.brotli
 go run omega_release/compressor/main.go -in ./pre-release/fastbuilder-android  -out ./pre-release/fastbuilder-android.brotli
 
-cp omega_release/更新日志.txt ./pre-release
-cp -r omega_release/新可用项 ./pre-release
 cp omega_release/install.sh ./pre-release
 cp omega_release/fileserver.go ./pre-release 
 TimeStamp=$(date '+%m-%d_%H-%M')
