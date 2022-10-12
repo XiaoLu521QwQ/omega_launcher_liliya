@@ -109,7 +109,7 @@ func WaitConnect() {
 }
 
 func RunCQHttp() {
-	args := []string{"faststart"}
+	args := []string{"-faststart"}
 	cmd := exec.Command(GetCqHttpExec(), args...)
 	cqHttpOut, err := cmd.StdoutPipe()
 	if err != nil {
@@ -166,7 +166,7 @@ func RequestToken() string {
 	pterm.Info.Printf("请输入 Fastbuilder 账号/或者输入 Token: ")
 	Code := utils.GetValidInput()
 	if strings.HasPrefix(Code, "w9/BeLNV/9") {
-		pterm.Success.Printf("您输入的是 Token, 因此无需输入密码了")
+		pterm.Success.Printfln("您输入的是 Token, 因此无需输入密码了")
 		time.Sleep(time.Second)
 		return Code
 	}
