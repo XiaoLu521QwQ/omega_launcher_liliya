@@ -26,9 +26,11 @@ import (
 var STOARGE_REPO = "https://storage.fastbuilder.pro/"
 
 type BotConfig struct {
-	Code   string `json:"租赁服号"`
-	Passwd string `json:"租赁服密码"`
-	Token  string `json:"FBToken"`
+	RentalCode       string `json:"租赁服号"`
+	RentalPasswd     string `json:"租赁服密码"`
+	FBToken          string `json:"FBToken"`
+	QGroupLinkEnable bool   `json:"是否开启群服互通"`
+	StartOmega       bool   `json:"是否启动Omega"`
 }
 
 func main() {
@@ -36,27 +38,24 @@ func main() {
 	pterm.Info.Printfln("Omega Launcher - Author: CMA2401PT")
 	pterm.Info.Printfln("Modify By Liliya233")
 	// 询问是否需要更新，以适配不同版本的FB
-	pterm.Info.Printfln("需要启动器从官网下载或更新FB程序吗？ 要请输入 y 不要请输入 n ")
+	pterm.Info.Printf("需要从官网下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
 	if utils.GetInputYN() {
 		targetHash := GetRemoteOmegaHash()
 		currentHash := GetCurrentOmegaHash()
 		//fmt.Println(targetHash)
 		//fmt.Println(currentHash)
 		if targetHash == currentHash {
-			pterm.Success.Println("太好了，你的 omega 已经是最新的了!")
+			pterm.Success.Println("太好了，你的 Fastbuilder 已经是最新的了!")
 		} else {
-			pterm.Warning.Println("我们将为你下载最新 omega, 请保持耐心...")
+			pterm.Warning.Println("正在为你下载最新的 Fastbuilder, 请保持耐心...")
 			DownloadOmega()
 		}
 	} else {
-		pterm.Warning.Println("将会使用该路径的FB程序： " + GetOmegaExecName())
+		pterm.Warning.Println("将会使用该路径的 Fastbuilder：" + GetOmegaExecName())
 		time.Sleep(time.Second)
 	}
 	if err := os.Chdir(GetCurrentDir()); err != nil {
 		panic(err)
-	}
-	if utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
-		CQHttpEnablerHelper()
 	}
 	StartOmegaHelper()
 }
@@ -68,11 +67,6 @@ var defaultConfigBytes []byte
 var defaultQGroupLinkConfigByte []byte
 
 func CQHttpEnablerHelper() {
-	pterm.Info.Printf("要启用群服互通吗 要请输入 y 不要请输入 n ")
-	accept := utils.GetInputYN()
-	if !accept {
-		return
-	}
 	if err := utils.WriteFileData(GetCqHttpExec(), GetCqHttpBinary()); err != nil {
 		panic(err)
 	}
@@ -163,20 +157,19 @@ func LoadCurrentFBToken() string {
 func RequestToken() string {
 	currentFbToken := LoadCurrentFBToken()
 	if currentFbToken != "" && strings.HasPrefix(currentFbToken, "w9/BeLNV/9") {
-		pterm.Info.Printf("要使用现有的FB账户登录吗?  使用现有账户请输入 y ,使用新账户请输入 n: ")
-		accept := utils.GetInputYN()
-		if accept {
+		pterm.Info.Printf("要使用现有的 Fastbuilder 账户登录吗?  使用现有账户请输入 y ,使用新账户请输入 n: ")
+		if utils.GetInputYN() {
 			return currentFbToken
 		}
 	}
-	pterm.Info.Printf("请输入FB账号/或者输入 Token: ")
+	pterm.Info.Printf("请输入 Fastbuilder 账号/或者输入 Token: ")
 	Code := utils.GetValidInput()
 	if strings.HasPrefix(Code, "w9/BeLNV/9") {
 		pterm.Success.Printf("您输入的是 Token, 因此无需输入密码了")
 		time.Sleep(time.Second)
 		return Code
 	}
-	pterm.Info.Printf("请输入FB密码: ")
+	pterm.Info.Printf("请输入 Fastbuilder 密码: ")
 	Passwd := utils.GetValidInput()
 	tokenstruct := &map[string]interface{}{
 		"encrypt_token": true,
@@ -191,58 +184,77 @@ func RequestToken() string {
 }
 
 func FBTokenSetup(cfg *BotConfig) {
-	if cfg.Token != "" {
-		pterm.Info.Printf("要使用上次的 FB 账号登录吗? 要请输入 y ,需要修改请输入 n: ")
-		accept := utils.GetInputYN()
-		if accept {
+	if cfg.FBToken != "" {
+		pterm.Info.Printf("要使用上次的 Fastbuilder 账号登录吗?  要请输入 y ,需要修改请输入 n: ")
+		if utils.GetInputYN() {
 			return
 		}
 	}
 	newToken := RequestToken()
-	cfg.Token = newToken
+	cfg.FBToken = newToken
 }
 
 func StartOmegaHelper() {
-	pterm.Success.Println("开始配置Omega登录")
+	// 读取配置出错则退出
 	botConfig := &BotConfig{}
-	reconfigFlag := true
-	fbTokenSetted := false
-	if err := utils.GetJsonData(path.Join(GetCurrentDir(), "服务器登录配置.json"), botConfig); err == nil && botConfig.Code != "" {
-		FBTokenSetup(botConfig)
-		fbTokenSetted = true
-		pwd := " 密码为空"
-		if botConfig.Passwd != "" {
-			pwd = " 密码为: " + botConfig.Passwd
+	if err := utils.GetJsonData(path.Join(GetCurrentDir(), "服务器登录配置.json"), botConfig); err != nil {
+		panic(err)
+	}
+	// 询问是否使用上一次的配置
+	if botConfig.FBToken != "" && botConfig.RentalCode != "" {
+		pterm.Info.Printf("要使用和上次完全相同的配置启动吗?  要请输入 y, 不要请输入 n : ")
+		if utils.GetInputYN() {
+			// 群服互通
+			if botConfig.QGroupLinkEnable && utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
+				CQHttpEnablerHelper()
+			}
+			Run(botConfig)
+			return
 		}
-		pterm.Info.Println("租赁服账号为: " + botConfig.Code + pwd)
-		pterm.Info.Printf("接受这个登录配置请输入 y ,需要修改请输入 n: ")
-		accept := utils.GetInputYN()
-		if accept {
-			reconfigFlag = false
+	}
+	// 配置FB
+	FBTokenSetup(botConfig)
+	// 配置租赁服登录
+	pterm.Info.Printf("请输入租赁服账号: ")
+	botConfig.RentalCode = utils.GetValidInput()
+	pterm.Info.Printf("请输入租赁服密码（没有则留空）: ")
+	botConfig.RentalPasswd = utils.GetInput()
+	// 询问是否使用Omega
+	pterm.Info.Printf("要启动 Omega 还是 Fastbuilder?  启动 Omega 请输入 y, 启动 Fastbuilder 请输入 n: ")
+	if utils.GetInputYN() {
+		botConfig.StartOmega = true
+		// 配置群服互通
+		pterm.Info.Printf("要启用群服互通吗?  要请输入 y, 不要请输入 n ")
+		if utils.GetInputYN() {
+			if utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
+				CQHttpEnablerHelper()
+				botConfig.QGroupLinkEnable = true
+			}
+		} else {
+			botConfig.QGroupLinkEnable = false
 		}
+	} else {
+		botConfig.StartOmega = false
 	}
-	if !fbTokenSetted {
-		FBTokenSetup(botConfig)
-	}
-	if reconfigFlag {
-		pterm.Info.Printf("请输入租赁服账号: ")
-		botConfig.Code = utils.GetValidInput()
-		pterm.Info.Printf("请输入租赁服密码（没有则留空）: ")
-		botConfig.Passwd = utils.GetInput()
-	}
+	// 将本次配置写入文件
 	if err := utils.WriteJsonData(path.Join(GetCurrentDir(), "服务器登录配置.json"), botConfig); err != nil {
-		pterm.Error.Println("无法记录租赁服配置，不过可能不是什么大问题")
+		pterm.Error.Println("无法记录配置，不过可能不是什么大问题")
 	}
-	RunOmega(botConfig)
+	// 启动Omega或者FB
+	Run(botConfig)
 }
 
-func RunOmega(cfg *BotConfig) {
+func Run(cfg *BotConfig) {
 	// 敏感信息不应进行打印
 	// fmt.Println(cfg.Token)
-	args := []string{"-M", "-O", "--plain-token", cfg.Token, "--no-update-check", "-c", cfg.Code}
-	if cfg.Passwd != "" {
+	args := []string{"-M", "--plain-token", cfg.FBToken, "--no-update-check", "-c", cfg.RentalCode}
+	if cfg.RentalPasswd != "" {
 		args = append(args, "-p")
-		args = append(args, cfg.Passwd)
+		args = append(args, cfg.RentalPasswd)
+	}
+	// 是否启动Omega
+	if cfg.StartOmega {
+		args = append(args, "-O")
 	}
 	readC := make(chan string)
 	go func() {
@@ -262,7 +274,7 @@ func RunOmega(cfg *BotConfig) {
 		if err != nil {
 			panic(err)
 		}
-		pterm.Success.Println("如果Omega崩溃了，它会在最长 30 秒后自动重启")
+		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它会在最长 30 秒后自动重启")
 
 		stopped := false
 		go func() {
