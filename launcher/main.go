@@ -18,12 +18,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andybalholm/brotli"
 	"github.com/gorilla/websocket"
 	"github.com/pterm/pterm"
 )
 
-var STOARGE_REPO = "http://124.222.6.29:6000"
+// 修改为官网地址
+var STOARGE_REPO = "https://storage.fastbuilder.pro/"
 
 type BotConfig struct {
 	Code   string `json:"租赁服号"`
@@ -32,15 +32,25 @@ type BotConfig struct {
 }
 
 func main() {
-	targetHash := GetRemoteOmegaHash()
-	currentHash := GetCurrentOmegaHash()
-	// fmt.Println(targetHash)
-	// fmt.Println(currentHash)
-	if targetHash == currentHash {
-		pterm.Success.Println("太好了，你的 omega 已经是最新的了!")
+	// 添加启动信息
+	pterm.Info.Printfln("Omega Launcher - Author: CMA2401PT")
+	pterm.Info.Printfln("Modify By Liliya233")
+	// 询问是否需要更新，以适配不同版本的FB
+	pterm.Info.Printfln("需要启动器从官网下载或更新FB程序吗？ 要请输入 y 不要请输入 n ")
+	if utils.GetInputYN() {
+		targetHash := GetRemoteOmegaHash()
+		currentHash := GetCurrentOmegaHash()
+		//fmt.Println(targetHash)
+		//fmt.Println(currentHash)
+		if targetHash == currentHash {
+			pterm.Success.Println("太好了，你的 omega 已经是最新的了!")
+		} else {
+			pterm.Warning.Println("我们将为你下载最新 omega, 请保持耐心...")
+			DownloadOmega()
+		}
 	} else {
-		pterm.Warning.Println("我们将为你下载最新 omega, 请保持耐心...")
-		DownloadOmega()
+		pterm.Warning.Println("将会使用该路径的FB程序： " + GetOmegaExecName())
+		time.Sleep(time.Second)
 	}
 	if err := os.Chdir(GetCurrentDir()); err != nil {
 		panic(err)
@@ -227,7 +237,8 @@ func StartOmegaHelper() {
 }
 
 func RunOmega(cfg *BotConfig) {
-	fmt.Println(cfg.Token)
+	// 敏感信息不应进行打印
+	// fmt.Println(cfg.Token)
 	args := []string{"-M", "-O", "--plain-token", cfg.Token, "--no-update-check", "-c", cfg.Code}
 	if cfg.Passwd != "" {
 		args = append(args, "-p")
@@ -307,8 +318,13 @@ func GetCurrentDir() string {
 
 func GetOmegaExecName() string {
 	omega := "fastbuilder"
-	if GetPlantform() == embed_binary.WINDOWS_x86_64 {
-		omega = "fastbuilder.exe"
+	switch GetPlantform() {
+	case embed_binary.WINDOWS_x86_64:
+		omega = "phoenixbuilder-windows-executable-x86_64.exe"
+	case embed_binary.Linux_x86_64:
+		omega = "phoenixbuilder"
+	case embed_binary.MACOS_x86_64:
+		omega = "phoenixbuilder-macos-x86_64"
 	}
 	omega = path.Join(GetCurrentDir(), omega)
 	p, err := filepath.Abs(omega)
@@ -335,20 +351,25 @@ func GetPlantform() string {
 	return embed_binary.GetPlantform()
 }
 
+// 添加解析JSON的操作以适配官网
 func GetRemoteOmegaHash() string {
-	url := ""
+	jsonData := utils.DownloadSmallContent(STOARGE_REPO + "hashes.json")
+	var hash string
+	hashMap := make(map[string]string, 0)
+	if err := json.Unmarshal([]byte(jsonData), &hashMap); err != nil {
+		panic(err)
+	}
 	switch GetPlantform() {
 	case embed_binary.WINDOWS_x86_64:
-		url = STOARGE_REPO + "/fastbuilder-windows.hash"
+		hash = hashMap["phoenixbuilder-windows-executable-x86_64.exe"]
 	case embed_binary.Linux_x86_64:
-		url = STOARGE_REPO + "/fastbuilder-linux.hash"
+		hash = hashMap["phoenixbuilder"]
 	case embed_binary.MACOS_x86_64:
-		url = STOARGE_REPO + "/fastbuilder-macos.hash"
+		hash = hashMap["phoenixbuilder-macos-x86_64"]
 	default:
 		panic("未知平台" + GetPlantform())
 	}
-	hashBytes := utils.DownloadSmallContent(url)
-	return string(hashBytes)
+	return hash
 }
 
 func GetFileHash(fname string) string {
@@ -381,18 +402,19 @@ func DownloadOmega() {
 	url := ""
 	switch GetPlantform() {
 	case embed_binary.WINDOWS_x86_64:
-		url = STOARGE_REPO + "/fastbuilder-windows.exe.brotli"
+		url = STOARGE_REPO + "phoenixbuilder-windows-executable-x86_64.exe"
 	case embed_binary.Linux_x86_64:
-		url = STOARGE_REPO + "/fastbuilder-linux.brotli"
+		url = STOARGE_REPO + "phoenixbuilder"
 	case embed_binary.MACOS_x86_64:
-		url = STOARGE_REPO + "/fastbuilder-macos.brotli"
+		url = STOARGE_REPO + "phoenixbuilder-macos-x86_64"
 	default:
 		panic("未知平台" + GetPlantform())
 	}
 	compressedData := utils.DownloadSmallContent(url)
 	var execBytes []byte
 	var err error
-	if execBytes, err = ioutil.ReadAll(brotli.NewReader(bytes.NewReader(compressedData))); err != nil {
+	// 官网并没有提供brotli，所以对读取操作进行修改
+	if execBytes, err = ioutil.ReadAll(bytes.NewReader(compressedData)); err != nil {
 		panic(err)
 	}
 	if err := utils.WriteFileData(exec, execBytes); err != nil {

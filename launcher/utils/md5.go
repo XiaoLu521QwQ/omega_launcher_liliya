@@ -1,14 +1,15 @@
 package utils
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 )
 
+// 修改hash计算方式以适配官网
 func GetBinaryHash(fileData []byte) string {
-	cvt := func(in [16]byte) []byte {
-		return in[:16]
+	cvt := func(in [32]byte) []byte {
+		return in[:32]
 	}
-	hashedBytes := cvt(md5.Sum(fileData))
-	return fmt.Sprintf("%x\n", hashedBytes)
+	hashedBytes := cvt(sha256.Sum256(fileData))
+	return fmt.Sprintf("%x", hashedBytes)
 }
