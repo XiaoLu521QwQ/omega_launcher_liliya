@@ -344,6 +344,10 @@ func GetCqHttpBinary() []byte {
 }
 
 func GetCurrentDir() string {
+	// 兼容linux-docker
+	if utils.IsDir(path.Join("/workspace")) {
+		return path.Join("/workspace")
+	}
 	pathExecutable, err := os.Executable()
 	if err != nil {
 		panic(err)
