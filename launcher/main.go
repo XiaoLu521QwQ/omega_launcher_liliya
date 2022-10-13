@@ -15,7 +15,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -35,14 +34,9 @@ type BotConfig struct {
 }
 
 func main() {
-	// Linux启动时清空控制台
-	if runtime.GOOS == "linux" {
-		cmd := exec.Command("clear")
-		cmd.Stdout = os.Stdout
-		cmd.Run()
-	}
 	// 添加启动信息
-	pterm.Info.Printfln("Omega Launcher - Author: CMA2401PT\nModify By Liliya233")
+	pterm.Info.Printfln("Omega Launcher - Author: CMA2401PT")
+	pterm.Info.Printfln("Modify By Liliya233")
 	// 询问是否需要更新，以适配不同版本的FB
 	pterm.Info.Printf("需要从官网下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
 	if utils.GetInputYN() {
