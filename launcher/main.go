@@ -150,11 +150,7 @@ func RunCQHttp() {
 }
 
 func LoadCurrentFBToken() string {
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	fbconfigdir := filepath.Join(homedir, ".config/fastbuilder")
+	fbconfigdir := filepath.Join(GetCurrentDir(), ".config/fastbuilder")
 	token := filepath.Join(fbconfigdir, "fbtoken")
 	if utils.IsFile(token) {
 		if data, err := utils.GetFileData(token); err == nil {
@@ -290,6 +286,7 @@ func Run(cfg *BotConfig) {
 	t := time.NewTicker(10 * time.Second)
 	for {
 		cmd := exec.Command(GetOmegaExecName(), args...)
+		cmd.Dir = path.Join(GetCurrentDir())
 		omega_out, err := cmd.StdoutPipe()
 		if err != nil {
 			panic(err)
