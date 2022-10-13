@@ -71,10 +71,15 @@ func CQHttpEnablerHelper() {
 	if err := utils.WriteFileData(GetCqHttpExec(), GetCqHttpBinary()); err != nil {
 		panic(err)
 	}
-	configFile := path.Join(GetCurrentDir(), "config.yml")
+	if !utils.MkDir(path.Join(GetCurrentDir(), "cqhttp_storage")) {
+		panic("无法创建cqhttp_storage目录")
+	}
+	pterm.Warning.Println("请注意，你只能通过上传 config.yml 与 device.json 至 cqhttp_storage 目录的方式来为服务器配置群服互通")
+	pterm.Info.Print("现在你可以进行文件上传的操作了，输入 y / 或者 n 继续配置群服互通: ")
+	utils.GetInputYN()
+	configFile := path.Join(GetCurrentDir(), "cqhttp_storage", "config.yml")
 	omegaConfigFile := path.Join(GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json")
 	if !utils.IsFile(configFile) {
-		pterm.Warning.Println("请注意，你只能通过上传config.yml与device.json的方式来为服务器配置群服互通")
 		pterm.Info.Printf("请输入QQ账号: ")
 		Code := utils.GetValidInput()
 		pterm.Info.Printf("请输入QQ密码（想扫码登录则留空）: ")
@@ -91,7 +96,7 @@ func CQHttpEnablerHelper() {
 		groupCfgStr := strings.ReplaceAll(string(defaultQGroupLinkConfigByte), "[群号]", GroupCode)
 		utils.WriteFileData(omegaConfigFile, []byte(groupCfgStr))
 	} else {
-		pterm.Success.Println("尝试使用config.yml与device.json来配置群服互通")
+		pterm.Success.Println("尝试使用 cqhttp_storage 目录下的 config.yml 与 device.json 来配置群服互通")
 	}
 	RunCQHttp()
 }
@@ -113,6 +118,7 @@ func WaitConnect() {
 func RunCQHttp() {
 	args := []string{"-faststart"}
 	cmd := exec.Command(GetCqHttpExec(), args...)
+	cmd.Dir = path.Join(GetCurrentDir(), "cqhttp_storage")
 	cqHttpOut, err := cmd.StdoutPipe()
 	if err != nil {
 		panic(err)
@@ -140,7 +146,7 @@ func RunCQHttp() {
 	}()
 	WaitConnect()
 	pterm.Success.Println("CQ-Http已经成功启动了！")
-	pterm.Info.Println("将config.yml与device.json上传至服务器即可配置群服互通")
+	pterm.Info.Println("将 config.yml 与 device.json 上传至服务器 cqhttp_storage 目录下即可配置群服互通")
 }
 
 func LoadCurrentFBToken() string {
@@ -218,7 +224,7 @@ func StartOmegaHelper() {
 			// 群服互通
 			if botConfig.QGroupLinkEnable {
 				if utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
-					CQHttpEnablerHelper()
+					RunCQHttp()
 				} else {
 					pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
 				}

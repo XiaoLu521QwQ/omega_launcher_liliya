@@ -8,18 +8,22 @@ import (
 
 func IsDir(path string) bool {
 	stat, err := os.Stat(path)
-	if !(err == nil && stat.IsDir()) {
-		return false
+	return (err == nil && stat.IsDir())
+}
+
+func MkDir(path string) bool {
+	if !IsDir(path) {
+		err := os.Mkdir(path, 0755)
+		if err != nil {
+			return false
+		}
 	}
 	return true
 }
 
 func IsFile(path string) bool {
 	stat, err := os.Stat(path)
-	if !(err == nil && !stat.IsDir()) {
-		return false
-	}
-	return true
+	return (err == nil && !stat.IsDir())
 }
 
 func GetFileData(fname string) ([]byte, error) {
