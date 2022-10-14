@@ -2,7 +2,7 @@ package utils
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -32,7 +32,7 @@ func GetFileData(fname string) ([]byte, error) {
 		return nil, err
 	}
 	defer fp.Close()
-	buf, err := ioutil.ReadAll(fp)
+	buf, err := io.ReadAll(fp)
 	if err != nil {
 		return nil, err
 	}
@@ -53,10 +53,10 @@ func WriteFileData(fname string, data []byte) error {
 
 func WriteJsonData(fname string, data interface{}) error {
 	file, err := os.OpenFile(fname, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	defer file.Close()
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	enc := json.NewEncoder(file)
 	enc.SetIndent("", "\t")
 	enc.SetEscapeHTML(false)
@@ -72,7 +72,7 @@ func GetJsonData(fname string, ptr interface{}) error {
 	if err != nil {
 		return err
 	}
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 || data == nil {
 		return nil
 	}
 	err = json.Unmarshal(data, ptr)

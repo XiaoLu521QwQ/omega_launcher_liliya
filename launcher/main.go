@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"omega_launcher/embed_binary"
 	"omega_launcher/utils"
@@ -454,7 +453,7 @@ func DownloadOmega() {
 	var execBytes []byte
 	var err error
 	// 官网并没有提供brotli，所以对读取操作进行修改
-	if execBytes, err = ioutil.ReadAll(bytes.NewReader(compressedData)); err != nil {
+	if execBytes, err = io.ReadAll(bytes.NewReader(compressedData)); err != nil {
 		panic(err)
 	}
 	if err := utils.WriteFileData(exec, execBytes); err != nil {
