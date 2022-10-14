@@ -1,0 +1,26 @@
+FROM ubuntu:latest
+LABEL maintainer="Liliya233"
+RUN sed -i 's/archive.ubuntu.com/mirrors.bfsu.edu.cn/g' /etc/apt/sources.list\
+    && apt-get -yq update \
+    && apt-get -qq install -y --no-install-recommends ca-certificates curl \
+    && apt-get install libreadline8 -y \
+    && apt-get install gcc -y \
+    && apt-get install wget -y \
+    && apt-get install unzip \
+    && mkdir /ome && cd /ome \
+    && wget https://github.com/Liliya233/omega_launcher/archive/refs/heads/main.zip \
+    && unzip main.zip && rm -f main.zip \
+    && cp ./omega_launcher-main/build/launcher_linux ./ && rm -rf ./omega_launcher-main \
+    && chmod +x /ome/launcher_linux \
+    && mkdir /workspace \
+    && apt clean -yq && apt autoclean -yq && apt autoremove -yq && rm -rf /var/lib/apt/lists/* \
+    && echo "#!/bin/bash" >> /ome/launcher_liliya \
+    && echo "sleep 1" >> /ome/launcher_liliya \
+    && echo "clear" >> /ome/launcher_liliya \
+    && echo "cd /workspace" >> /ome/launcher_liliya \
+    && echo "/ome/launcher_linux" >> /ome/launcher_liliya \
+    && chmod +x /ome/launcher_liliya \
+    && mkdir -p /root/.config && mkdir -p /root/.config/fastbuilder \
+    && echo -n 'zh_CN' > /root/.config/fastbuilder/language
+WORKDIR /workspace
+ENTRYPOINT [ "/ome/launcher_liliya" ]
