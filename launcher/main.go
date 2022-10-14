@@ -107,7 +107,7 @@ func WaitConnect() {
 		var err error
 		_, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
-			time.Sleep(1)
+			// time.Sleep(1)
 			continue
 		} else {
 			return
@@ -334,7 +334,7 @@ func Run(cfg *BotConfig) {
 		}
 		stopped = true
 		pterm.Warning.Println("Omega将在最长 30 秒后自动重启")
-		time.Sleep(10)
+		// time.Sleep(10)
 		<-t.C
 	}
 }
@@ -345,8 +345,8 @@ func GetCqHttpBinary() []byte {
 
 func GetCurrentDir() string {
 	// 兼容linux-docker
-	if utils.IsDir(path.Join("/workspace")) {
-		return path.Join("/workspace")
+	if utils.IsFile(path.Join("ome", "launcher_liliya")) {
+		return path.Join("workspace")
 	}
 	pathExecutable, err := os.Executable()
 	if err != nil {
