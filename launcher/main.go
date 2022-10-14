@@ -344,8 +344,8 @@ func GetCqHttpBinary() []byte {
 
 func GetCurrentDir() string {
 	// 兼容linux-docker
-	if utils.IsFile(path.Join("ome", "launcher_liliya")) {
-		return path.Join("workspace")
+	if utils.IsFile(path.Join("/ome", "launcher_liliya")) {
+		return path.Join("/workspace")
 	}
 	pathExecutable, err := os.Executable()
 	if err != nil {
