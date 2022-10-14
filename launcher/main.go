@@ -30,30 +30,14 @@ type BotConfig struct {
 	FBToken          string `json:"FBToken"`
 	QGroupLinkEnable bool   `json:"是否开启群服互通"`
 	StartOmega       bool   `json:"是否启动Omega"`
+	UpdateFB         bool   `json:"是否更新FB"`
 }
 
 func main() {
 	// 添加启动信息
 	pterm.Info.Printfln("Omega Launcher - Author: CMA2401PT")
 	pterm.Info.Printfln("Modify By Liliya233")
-	// 询问是否需要更新，以适配不同版本的FB
-	pterm.Info.Printf("需要从官网下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
-	if utils.GetInputYN() {
-		pterm.Warning.Println("正在从官网获取更新信息...")
-		targetHash := GetRemoteOmegaHash()
-		currentHash := GetCurrentOmegaHash()
-		//fmt.Println(targetHash)
-		//fmt.Println(currentHash)
-		if targetHash == currentHash {
-			pterm.Success.Println("太好了，你的 Fastbuilder 已经是最新的了!")
-		} else {
-			pterm.Warning.Println("正在为你下载最新的 Fastbuilder, 请保持耐心...")
-			DownloadOmega()
-		}
-	} else {
-		pterm.Warning.Println("将会使用该路径的 Fastbuilder：" + GetOmegaExecName())
-		time.Sleep(time.Second)
-	}
+	// 启动
 	if err := os.Chdir(GetCurrentDir()); err != nil {
 		panic(err)
 	}
@@ -210,6 +194,20 @@ func RentalServerSetup(cfg *BotConfig) {
 	cfg.RentalPasswd = utils.GetInput()
 }
 
+func UpdateFB() {
+	pterm.Warning.Println("正在从官网获取更新信息...")
+	targetHash := GetRemoteOmegaHash()
+	currentHash := GetCurrentOmegaHash()
+	//fmt.Println(targetHash)
+	//fmt.Println(currentHash)
+	if targetHash == currentHash {
+		pterm.Success.Println("太好了，你的 Fastbuilder 已经是最新的了!")
+	} else {
+		pterm.Warning.Println("正在为你下载最新的 Fastbuilder, 请保持耐心...")
+		DownloadOmega()
+	}
+}
+
 func StartOmegaHelper() {
 	// 读取配置出错则退出
 	botConfig := &BotConfig{}
@@ -220,6 +218,10 @@ func StartOmegaHelper() {
 	if botConfig.FBToken != "" && botConfig.RentalCode != "" {
 		pterm.Info.Printf("要使用和上次完全相同的配置启动吗?  要请输入 y, 不要请输入 n : ")
 		if utils.GetInputYN() {
+			// 更新FB
+			if botConfig.UpdateFB {
+				UpdateFB()
+			}
 			// 群服互通
 			if botConfig.QGroupLinkEnable {
 				if utils.IsDir(path.Join(GetCurrentDir(), "omega_storage")) {
@@ -231,6 +233,16 @@ func StartOmegaHelper() {
 			Run(botConfig)
 			return
 		}
+	}
+	// 配置FB更新
+	pterm.Info.Printf("需要从官网下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
+	if utils.GetInputYN() {
+		UpdateFB()
+		botConfig.UpdateFB = true
+	} else {
+		pterm.Warning.Println("将会使用该路径的 Fastbuilder：" + GetOmegaExecName())
+		botConfig.UpdateFB = false
+		time.Sleep(time.Second)
 	}
 	// 配置FB
 	FBTokenSetup(botConfig)
