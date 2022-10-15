@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 LABEL maintainer="Liliya233"
-RUN sed -i 's/archive.ubuntu.com/mirrors.bfsu.edu.cn/g' /etc/apt/sources.list\
+RUN sed -i 's/archive.ubuntu.com/mirrors.bfsu.edu.cn/g' /etc/apt/sources.list \
     && apt-get -yq update \
     && apt-get -qq install -y --no-install-recommends ca-certificates curl \
     && apt-get install libreadline8 -y \

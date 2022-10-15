@@ -216,8 +216,8 @@ func StartOmegaHelper() {
 	}
 	// 询问是否使用上一次的配置
 	if botConfig.FBToken != "" && botConfig.RentalCode != "" {
-		pterm.Info.Printf("要使用和上次完全相同的配置启动吗?  要请输入 y, 不要请输入 n : ")
-		if utils.GetInputYN() {
+		pterm.Info.Printf("要使用和上次完全相同的配置启动吗? 要请输入 y, 不要请输入 n (10秒后会自动确认): ")
+		if utils.GetInputYNTimeLimit(10) {
 			// 更新FB
 			if botConfig.UpdateFB {
 				UpdateFB()
@@ -298,7 +298,7 @@ func Run(cfg *BotConfig) {
 			readC <- s
 		}
 	}()
-	t := time.NewTicker(10 * time.Second)
+	// t := time.NewTicker(10 * time.Second)
 	for {
 		cmd := exec.Command(GetOmegaExecName(), args...)
 		omega_out, err := cmd.StdoutPipe()
@@ -309,8 +309,7 @@ func Run(cfg *BotConfig) {
 		if err != nil {
 			panic(err)
 		}
-		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它会在最长 30 秒后自动重启")
-
+		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它会在最长 10 秒后自动重启")
 		stopped := false
 		go func() {
 			reader := bufio.NewReader(omega_out)
@@ -344,9 +343,10 @@ func Run(cfg *BotConfig) {
 			fmt.Println(err)
 		}
 		stopped = true
-		pterm.Warning.Println("Omega将在最长 30 秒后自动重启")
-		// time.Sleep(10)
-		<-t.C
+		// 为了避免频繁请求，崩溃后将等待10秒后重启，可手动跳过等待
+		pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
+		pterm.Warning.Print("似乎发生了错误，要重启 Fastbuilder 吗? 输入 y / 或者 n 确认(10秒后会自动确认): ")
+		utils.GetInputYNTimeLimit(10)
 	}
 }
 
@@ -355,7 +355,7 @@ func GetCqHttpBinary() []byte {
 }
 
 func GetCurrentDir() string {
-	// 兼容linux-docker
+	// 兼容配套的Dockerfile
 	if utils.IsFile(path.Join("/ome", "launcher_liliya")) {
 		return path.Join("/workspace")
 	}
