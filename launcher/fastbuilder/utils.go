@@ -47,7 +47,6 @@ func GetRemoteFBHash(url string) string {
 	hashMap := make(map[string]string, 0)
 	if err := json.Unmarshal([]byte(jsonData), &hashMap); err != nil {
 		panic(err)
-
 	}
 	hash = hashMap[GetFBExecName()]
 	if hash == "" {
