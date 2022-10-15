@@ -187,6 +187,7 @@ func Run(cfg *BotConfig) {
 			pterm.Error.Println("Fastbuilder运行时出现错误")
 		}
 		// 如果运行到这里，说明Fastbuilder出现错误了
+		cmd.Process.Kill()
 		// 随便往频道丢点东西结束协程
 		stop <- "stop!!"
 		pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
