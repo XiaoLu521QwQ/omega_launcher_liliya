@@ -13,3 +13,15 @@ func GetBinaryHash(fileData []byte) string {
 	hashedBytes := cvt(sha256.Sum256(fileData))
 	return fmt.Sprintf("%x", hashedBytes)
 }
+
+// 获取文件Hash
+func GetFileHash(fname string) string {
+	if IsFile(fname) {
+		fileData, err := GetFileData(fname)
+		if err != nil {
+			panic(err)
+		}
+		return GetBinaryHash(fileData)
+	}
+	return ""
+}

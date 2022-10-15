@@ -37,6 +37,7 @@ func GetInputYN() bool {
 	}
 }
 
+// 错误示范，函数退出后协程仍然在等待输入(((
 /*
 func GetInputYNTimeLimit(sec int) bool {
 	// 建立频道
