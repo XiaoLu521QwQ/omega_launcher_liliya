@@ -216,7 +216,7 @@ func StartOmegaHelper() {
 	}
 	// 询问是否使用上一次的配置
 	if botConfig.FBToken != "" && botConfig.RentalCode != "" {
-		pterm.Info.Printf("要使用和上次完全相同的配置启动吗? 要请输入 y, 不要请输入 n (10秒后会自动确认): ")
+		pterm.Info.Printf("要使用和上次完全相同的配置启动吗? 要请输入 y, 不要请输入 n: ")
 		if utils.GetInputYN() {
 			// 更新FB
 			if botConfig.UpdateFB {
