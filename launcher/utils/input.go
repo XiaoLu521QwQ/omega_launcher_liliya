@@ -2,10 +2,8 @@ package utils
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/pterm/pterm"
 )
@@ -39,30 +37,24 @@ func GetInputYN() bool {
 	}
 }
 
+/*
 func GetInputYNTimeLimit(sec int) bool {
+	// 建立频道
 	chn := make(chan bool)
 	// 计时器
-	t := time.NewTimer(time.Duration(sec) * time.Second)
+	timeout, cancel := context.WithTimeout(context.Background(), time.Duration(sec)*time.Second)
+	defer cancel()
 	// 将用户输入结果传入chn
 	go func() {
-		for {
-			s := GetInput()
-			if strings.HasPrefix(s, "y") || strings.HasPrefix(s, "Y") {
-				chn <- true
-			} else if strings.HasPrefix(s, "n") || strings.HasPrefix(s, "N") {
-				chn <- false
-			} else {
-				pterm.Error.Println("无效输入，输入应该为 y 或者 n")
-				t.Reset(time.Duration(sec) * time.Second)
-			}
-		}
+		chn <- GetInputYN()
 	}()
 	// 返回输入结果或超时处理
 	select {
 	case chn := <-chn:
 		return chn
-	case <-t.C:
+	case <-timeout.Done():
 		fmt.Println("<超时自动确认>")
 		return true
 	}
 }
+*/

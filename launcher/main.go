@@ -217,7 +217,7 @@ func StartOmegaHelper() {
 	// 询问是否使用上一次的配置
 	if botConfig.FBToken != "" && botConfig.RentalCode != "" {
 		pterm.Info.Printf("要使用和上次完全相同的配置启动吗? 要请输入 y, 不要请输入 n (10秒后会自动确认): ")
-		if utils.GetInputYNTimeLimit(10) {
+		if utils.GetInputYN() {
 			// 更新FB
 			if botConfig.UpdateFB {
 				UpdateFB()
@@ -343,10 +343,10 @@ func Run(cfg *BotConfig) {
 			fmt.Println(err)
 		}
 		stopped = true
-		// 为了避免频繁请求，崩溃后将等待10秒后重启，可手动跳过等待
 		pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
-		pterm.Warning.Print("似乎发生了错误，要重启 Fastbuilder 吗? 输入 y / 或者 n 确认(10秒后会自动确认): ")
-		utils.GetInputYNTimeLimit(10)
+		// 为了避免频繁请求，崩溃后将等待10秒后重启，可手动跳过等待
+		//pterm.Warning.Print("似乎发生了错误，要重启 Fastbuilder 吗? 输入 y / 或者 n 确认(10秒后会自动确认): ")
+		//utils.GetInputYNTimeLimit(10)
 	}
 }
 
