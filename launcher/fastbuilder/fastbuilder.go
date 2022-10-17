@@ -108,6 +108,8 @@ func StartHelper() {
 			pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
 			botConfig.QGroupLinkEnable = false
 		}
+	} else {
+		botConfig.StartOmega = false
 	}
 	// 将本次配置写入文件
 	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "服务器登录配置.json"), botConfig); err != nil {
@@ -140,8 +142,10 @@ func Run(cfg *BotConfig) {
 		}
 	}()
 	for {
+		// 是否停止
+		isStopped := false
 		// 启动时提示信息
-		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它会在最长 10 秒后自动重启")
+		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它将在 10 秒内自动重启")
 		// 启动命令
 		cmd := exec.Command(GetFBExecPath(), args...)
 		// 建立从Fastbuilder到控制台的输出管道
@@ -154,16 +158,33 @@ func Run(cfg *BotConfig) {
 		if err != nil {
 			panic(err)
 		}
+		// 建立从Fastbuilder到控制台的错误管道
+		omega_err, err := cmd.StderrPipe()
+		if err != nil {
+			panic(err)
+		}
 		// 从管道中获取并打印Fastbuilder输出内容
 		go func() {
 			reader := bufio.NewReader(omega_out)
 			for {
 				readString, err := reader.ReadString('\n')
 				if err != nil || err == io.EOF {
-					pterm.Error.Println("读取Fastbuilder输出内容时出现错误")
+					//pterm.Error.Println("读取 Omega/Fastbuilder 输出内容时出现错误")
 					return
 				}
 				fmt.Print(readString)
+			}
+		}()
+		// 从管道中获取并打印Fastbuilder错误内容
+		go func() {
+			reader := bufio.NewReader(omega_err)
+			for {
+				readString, err := reader.ReadString('\n')
+				if err != nil || err == io.EOF {
+					//pterm.Error.Println("读取 Omega/Fastbuilder 错误内容时出现错误")
+					return
+				}
+				fmt.Errorf(readString)
 			}
 		}()
 		// 在未收到停止信号前，启动器会一直将控制台输入的内容通过管道发送给Fastbuilder
@@ -173,26 +194,42 @@ func Run(cfg *BotConfig) {
 				case <-stop:
 					return
 				case s := <-readC:
-					omega_in.Write([]byte(s + "\n"))
+					// 接收到停止命令时处理
+					if (cfg.StartOmega == true && s == "stop") || s == "exit" {
+						// 关闭重启
+						isStopped = true
+						// 发出停止命令
+						omega_in.Write([]byte(s + "\n"))
+						// 输出信息
+						pterm.Success.Println("正在等待 Omega/Fastbuilder 处理退出命令")
+						// 停止接收输入
+						return
+					} else {
+						omega_in.Write([]byte(s + "\n"))
+					}
+
 				}
 			}
 		}()
 		// 启动并持续运行Fastbuilder
 		err = cmd.Start()
 		if err != nil {
-			pterm.Error.Println("Fastbuilder启动时出现错误")
+			pterm.Error.Println("Omega/Fastbuilder 启动时出现错误")
 		}
-		err = cmd.Wait()
-		if err != nil {
-			pterm.Error.Println("Fastbuilder运行时出现错误")
-		}
-		// 如果运行到这里，说明Fastbuilder出现错误了
+		cmd.Wait()
+		// 如果运行到这里，说明Fastbuilder出现错误或退出运行了
 		cmd.Process.Kill()
-		// 随便往频道丢点东西结束协程
-		stop <- "stop!!"
-		pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
+		// 判断是否正常退出
+		if isStopped {
+			pterm.Success.Println("Omega/Fastbuilder 已正常退出，启动器将结束运行")
+			time.Sleep(3 * time.Second)
+			break
+		} else {
+			stop <- "stop!!"
+			pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
+		}
 		// 为了避免频繁请求，崩溃后将等待10秒后重启，可手动跳过等待
-		pterm.Warning.Print("似乎发生了错误，要重启 Fastbuilder 吗? 请按回车确认(10秒后会自动确认): ")
+		pterm.Warning.Print("似乎发生了错误，要重启 Omega/Fastbuilder 吗? 请按回车确认(10秒后会自动确认): ")
 		// 等待输入或计时结束
 		select {
 		case <-readC:
