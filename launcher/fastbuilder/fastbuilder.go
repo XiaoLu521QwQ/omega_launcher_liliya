@@ -145,7 +145,7 @@ func Run(cfg *BotConfig) {
 		// 是否停止
 		isStopped := false
 		// 启动时提示信息
-		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它将在 10 秒内自动重启")
+		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它将在 20 秒内自动重启")
 		// 启动命令
 		cmd := exec.Command(GetFBExecPath(), args...)
 		// 建立从Fastbuilder到控制台的输出管道
@@ -195,7 +195,7 @@ func Run(cfg *BotConfig) {
 					return
 				case s := <-readC:
 					// 接收到停止命令时处理
-					if (cfg.StartOmega == true && s == "stop") || s == "exit" {
+					if (cfg.StartOmega && s == "stop") || s == "exit" {
 						// 关闭重启
 						isStopped = true
 						// 发出停止命令
