@@ -2,15 +2,12 @@ FROM ubuntu:latest
 LABEL maintainer="Liliya233"
 RUN sed -i 's/archive.ubuntu.com/mirrors.bfsu.edu.cn/g' /etc/apt/sources.list \
     && apt-get -yq update \
-    && apt-get -qq install -y --no-install-recommends ca-certificates curl \
+    && apt-get install ca-certificates -y \
     && apt-get install libreadline8 -y \
     && apt-get install gcc -y \
     && apt-get install wget -y \
-    && apt-get install unzip \
     && mkdir /ome && cd /ome \
-    && wget https://github.com/Liliya233/omega_launcher/archive/refs/heads/main.zip \
-    && unzip main.zip && rm -f main.zip \
-    && cp ./omega_launcher-main/build/launcher_linux ./ && rm -rf ./omega_launcher-main \
+    && wget https://github.com/Liliya233/omega_launcher/raw/main/build/launcher_linux \
     && chmod +x /ome/launcher_linux \
     && mkdir /workspace \
     && apt clean -yq && apt autoclean -yq && apt autoremove -yq && rm -rf /var/lib/apt/lists/* \
