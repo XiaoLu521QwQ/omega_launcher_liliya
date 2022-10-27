@@ -184,7 +184,7 @@ func Run(cfg *BotConfig) {
 					//pterm.Error.Println("读取 Omega/Fastbuilder 错误内容时出现错误")
 					return
 				}
-				fmt.Errorf(readString)
+				pterm.Error.Println(readString)
 			}
 		}()
 		// 在未收到停止信号前，启动器会一直将控制台输入的内容通过管道发送给Fastbuilder
@@ -215,8 +215,13 @@ func Run(cfg *BotConfig) {
 		err = cmd.Start()
 		if err != nil {
 			pterm.Error.Println("Omega/Fastbuilder 启动时出现错误")
+			pterm.Error.Println(err)
 		}
-		cmd.Wait()
+		err = cmd.Wait()
+		if err != nil {
+			pterm.Error.Println("Omega/Fastbuilder 运行时出现错误")
+			pterm.Error.Println(err)
+		}
 		// 如果运行到这里，说明Fastbuilder出现错误或退出运行了
 		cmd.Process.Kill()
 		// 判断是否正常退出
