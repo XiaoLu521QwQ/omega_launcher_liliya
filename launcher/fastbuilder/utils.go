@@ -18,6 +18,8 @@ func GetFBExecName() string {
 		name = "phoenixbuilder"
 	case embed_binary.MACOS_x86_64:
 		name = "phoenixbuilder-macos-x86_64"
+	case embed_binary.Android_arm64:
+		name = "phoenixbuilder-android-executable-arm64"
 	}
 	return name
 }
