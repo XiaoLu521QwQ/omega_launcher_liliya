@@ -13,6 +13,7 @@ func main() {
 	// 添加启动信息
 	pterm.Info.Printfln("Omega Launcher - Author: CMA2401PT")
 	pterm.Info.Printfln("Modify By Liliya233")
+	pterm.Info.Printfln("https://github.com/Liliya233/omega_launcher")
 	// 启动
 	if err := os.Chdir(utils.GetCurrentDir()); err != nil {
 		panic(err)
