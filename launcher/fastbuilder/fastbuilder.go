@@ -195,7 +195,7 @@ func Run(cfg *BotConfig) {
 					return
 				case s := <-readC:
 					// 接收到停止命令时处理
-					if (cfg.StartOmega && s == "stop") || s == "exit" {
+					if (cfg.StartOmega && s == "stop") || s == "exit" || s == "fbexit" {
 						// 关闭重启
 						isStopped = true
 						// 发出停止命令
