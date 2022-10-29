@@ -28,7 +28,7 @@ func GetValidInput() string {
 func GetInputYN() bool {
 	for {
 		s := GetInput()
-		if strings.HasPrefix(s, "y") || strings.HasPrefix(s, "Y") {
+		if strings.HasPrefix(s, "y") || strings.HasPrefix(s, "Y") || s == "" {
 			return true
 		} else if strings.HasPrefix(s, "n") || strings.HasPrefix(s, "N") {
 			return false

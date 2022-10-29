@@ -7,26 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb/v3"
 )
-
-type WriteCounter struct {
-	Total        uint64
-	DownloadSize uint64
-	ProgressBar  *pb.ProgressBar
-}
-
-func (wc WriteCounter) PrintProgress() {
-	wc.ProgressBar.Add64(int64(wc.Total))
-	wc.ProgressBar.Increment()
-}
-
-func (wc *WriteCounter) Write(p []byte) (int, error) {
-	n := len(p)
-	wc.Total = uint64(n)
-	wc.PrintProgress()
-	return n, nil
-}
 
 func DownloadSmallContent(sourceUrl string) []byte {
 	// Get the data
@@ -38,22 +20,21 @@ func DownloadSmallContent(sourceUrl string) []byte {
 
 	// Size
 	size, _ := strconv.Atoi(resp.Header.Get("Content-Length"))
-	downloadSize := uint64(size)
+	downloadSize := int64(size)
 
 	// Progress Bar
-	bar := pb.New64(int64(downloadSize))
-	bar.SetRefreshRate(time.Second)
-	bar.SetUnits(pb.U_BYTES)
-	bar.Start()
+	bar := pb.Full.Start64(downloadSize)
+	bar.SetWidth(-1)
+	bar.SetMaxWidth(100)
+	bar.SetRefreshRate(time.Millisecond)
 	defer bar.Finish()
 
-	// Create our bytes counter and pass it to be used alongside our writer
-	counter := &WriteCounter{
-		DownloadSize: downloadSize,
-		ProgressBar:  bar,
-	}
+	// Reader
+	barReader := bar.NewProxyReader(resp.Body)
+
+	// Buffer
 	contents := bytes.NewBuffer([]byte{})
-	if _, err := io.Copy(contents, io.TeeReader(resp.Body, counter)); err == nil {
+	if _, err := io.Copy(contents, barReader); err == nil {
 		return contents.Bytes()
 	} else {
 		panic(err)
