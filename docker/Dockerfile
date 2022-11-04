@@ -6,6 +6,9 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.bfsu.edu.cn/g' /etc/apt/sources.list \
     && apt-get install libreadline8 -y \
     && apt-get install gcc -y \
     && apt-get install wget -y \
+    && apt-get install -y tzdata \
+    && ln -snf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime && echo $TIME_ZONE > /etc/timezone \
+    && dpkg-reconfigure -f noninteractive tzdata \
     && mkdir /ome && cd /ome \
     && wget https://github.com/Liliya233/omega_launcher/raw/main/build/launcher_linux \
     && chmod +x /ome/launcher_linux \
