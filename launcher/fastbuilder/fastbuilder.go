@@ -97,7 +97,7 @@ func StartHelper() {
 		botConfig.StartOmega = true
 		// 配置群服互通
 		if utils.IsDir(path.Join(utils.GetCurrentDir(), "omega_storage")) {
-			pterm.Info.Printf("要启用群服互通吗?  要请输入 y, 不要请输入 n: ")
+			pterm.Info.Printf("需要启动器帮忙配置群服互通吗?  要请输入 y, 不要请输入 n: ")
 			if utils.GetInputYN() {
 				cqhttp.CQHttpEnablerHelper()
 				botConfig.QGroupLinkEnable = true

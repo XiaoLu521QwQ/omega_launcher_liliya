@@ -9,6 +9,7 @@ import (
 )
 
 // Fastbuilder远程仓库地址
+// var STOARGE_REPO = "localhost:12333/res"
 var STOARGE_REPO = "https://storage.fastbuilder.pro/"
 
 // 下载FB
