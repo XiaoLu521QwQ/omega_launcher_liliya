@@ -10,7 +10,7 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.bfsu.edu.cn/g' /etc/apt/sources.list \
     && ln -snf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime && echo $TIME_ZONE > /etc/timezone \
     && dpkg-reconfigure -f noninteractive tzdata \
     && mkdir /ome && cd /ome \
-#   && wget localhost:12333/res/launcher//launcher_linux \
+#    && wget https://***/res/launcher/launcher_linux \
     && wget https://github.com/Liliya233/omega_launcher/raw/main/build/launcher_linux \
     && chmod +x /ome/launcher_linux \
     && mkdir /workspace \
