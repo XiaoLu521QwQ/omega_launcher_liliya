@@ -9,7 +9,7 @@ import (
 )
 
 // Fastbuilder远程仓库地址
-var STOARGE_REPO = ""
+var STORAGE_REPO = ""
 var REMOTE_REPO = "https://github.com/LNSSPsd/PhoenixBuilder/releases/latest/download/"
 var MIRROR_REPO = "https://hub.fgit.ml/LNSSPsd/PhoenixBuilder/releases/latest/download/"
 var LOCAL_REPO = "http://fileserver:12333/res/"
@@ -23,13 +23,13 @@ func selectRepo(cfg *BotConfig, reselect bool) *BotConfig {
 	}
 	if cfg.Repo == 1 {
 		pterm.Info.Println("将使用Github仓库进行更新")
-		STOARGE_REPO = REMOTE_REPO
+		STORAGE_REPO = REMOTE_REPO
 	} else if cfg.Repo == 2 {
 		pterm.Info.Println("将使用Github镜像仓库进行更新")
-		STOARGE_REPO = MIRROR_REPO
+		STORAGE_REPO = MIRROR_REPO
 	} else if cfg.Repo == 3 {
 		pterm.Info.Println("将使用本地仓库进行更新")
-		STOARGE_REPO = LOCAL_REPO
+		STORAGE_REPO = LOCAL_REPO
 	} else {
 		panic("无效的仓库值，请重新进行选择")
 	}
@@ -42,7 +42,7 @@ func downloadFB() {
 	var err error
 	// 获取写入路径与远程仓库url
 	path := GetFBExecPath()
-	url := STOARGE_REPO + GetFBExecName()
+	url := STORAGE_REPO + GetFBExecName()
 	// 下载
 	compressedData := utils.DownloadSmallContent(url)
 	// 官网并没有提供brotli，所以对读取操作进行修改
@@ -59,7 +59,7 @@ func downloadFB() {
 func UpdateFB(cfg *BotConfig, reselect bool) *BotConfig {
 	cfg = selectRepo(cfg, reselect)
 	pterm.Warning.Println("正在从指定仓库获取更新信息..")
-	targetHash := GetRemoteFBHash(STOARGE_REPO)
+	targetHash := GetRemoteFBHash(STORAGE_REPO)
 	currentHash := GetCurrentFBHash()
 	//fmt.Println(targetHash)
 	//fmt.Println(currentHash)
