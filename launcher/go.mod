@@ -3,7 +3,6 @@ module omega_launcher
 go 1.18
 
 require (
-	github.com/cheggaaa/pb v1.0.29
 	github.com/gorilla/websocket v1.5.0
 	github.com/pterm/pterm v0.12.49
 )
@@ -13,7 +12,6 @@ require (
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
-	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 )
 
 require (
@@ -25,7 +23,6 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.5 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect
-	github.com/schollz/progressbar/v3 v3.11.0
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/term v0.0.0-20220919170432-7a66f970e087 // indirect

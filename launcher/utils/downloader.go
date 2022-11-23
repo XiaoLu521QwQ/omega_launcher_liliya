@@ -8,12 +8,14 @@ import (
 	"time"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/pterm/pterm"
 )
 
 func DownloadSmallContent(sourceUrl string) []byte {
 	// Get the data
 	resp, err := http.Get(sourceUrl)
 	if err != nil {
+		pterm.Error.Println("从指定仓库下载资源时出现错误，请重试或更换仓库")
 		panic(err)
 	}
 	defer resp.Body.Close()

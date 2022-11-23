@@ -15,12 +15,20 @@ import (
 
 // 启动器配置文件结构
 type BotConfig struct {
+	Repo             int    `json:"仓库序号"`
 	RentalCode       string `json:"租赁服号"`
 	RentalPasswd     string `json:"租赁服密码"`
 	FBToken          string `json:"FBToken"`
 	QGroupLinkEnable bool   `json:"是否开启群服互通"`
 	StartOmega       bool   `json:"是否启动Omega"`
 	UpdateFB         bool   `json:"是否更新FB"`
+}
+
+// 保存配置文件
+func saveConfig(cfg *BotConfig) {
+	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "服务器登录配置.json"), cfg); err != nil {
+		pterm.Error.Println("无法记录配置，不过可能不是什么大问题")
+	}
 }
 
 // 配置Token
@@ -56,7 +64,7 @@ func StartHelper() {
 		if utils.GetInputYN() {
 			// 更新FB
 			if botConfig.UpdateFB {
-				UpdateFB()
+				UpdateFB(botConfig, false)
 			}
 			// 群服互通
 			if botConfig.QGroupLinkEnable {
@@ -66,14 +74,17 @@ func StartHelper() {
 					pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
 				}
 			}
+			// 将本次配置写入文件
+			saveConfig(botConfig)
+			// 启动Omega或者FB
 			Run(botConfig)
 			return
 		}
 	}
 	// 配置FB更新
-	pterm.Info.Printf("需要从官网下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
+	pterm.Info.Printf("需要启动器帮忙下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
 	if utils.GetInputYN() {
-		UpdateFB()
+		UpdateFB(botConfig, true)
 		botConfig.UpdateFB = true
 	} else {
 		pterm.Warning.Println("将会使用该路径的 Fastbuilder：" + GetFBExecPath())
@@ -112,9 +123,7 @@ func StartHelper() {
 		botConfig.StartOmega = false
 	}
 	// 将本次配置写入文件
-	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "服务器登录配置.json"), botConfig); err != nil {
-		pterm.Error.Println("无法记录配置，不过可能不是什么大问题")
-	}
+	saveConfig(botConfig)
 	// 启动Omega或者FB
 	Run(botConfig)
 }
