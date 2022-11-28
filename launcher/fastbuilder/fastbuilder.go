@@ -101,7 +101,7 @@ func StartHelper() {
 	botConfig = FBTokenSetup(botConfig)
 	// 配置租赁服登录
 	if botConfig.RentalCode != "" {
-		pterm.Info.Printf("要使用上次的租赁服配置吗? 要请输入 y, 不要请输入 n : ")
+		pterm.Info.Printf("要使用上次的租赁服配置吗? 要请输入 y, 不要请输入 n: ")
 		if !utils.GetInputYN() {
 			botConfig = RentalServerSetup(botConfig)
 		}
