@@ -8,6 +8,7 @@ import (
 	"omega_launcher/utils"
 	"os/exec"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/pterm/pterm"
@@ -28,6 +29,7 @@ type BotConfig struct {
 func saveConfig(cfg *BotConfig) {
 	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "服务器登录配置.json"), cfg); err != nil {
 		pterm.Error.Println("无法记录配置，不过可能不是什么大问题")
+		return
 	}
 }
 
@@ -74,8 +76,6 @@ func StartHelper() {
 					pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
 				}
 			}
-			// 将本次配置写入文件
-			saveConfig(botConfig)
 			// 启动Omega或者FB
 			Run(botConfig)
 			return
@@ -122,8 +122,6 @@ func StartHelper() {
 	} else {
 		botConfig.StartOmega = false
 	}
-	// 将本次配置写入文件
-	saveConfig(botConfig)
 	// 启动Omega或者FB
 	Run(botConfig)
 }
@@ -154,7 +152,7 @@ func Run(cfg *BotConfig) {
 		// 是否停止
 		isStopped := false
 		// 启动时提示信息
-		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它将在 20 秒内自动重启")
+		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它将在 20 秒后自动重启")
 		// 启动命令
 		cmd := exec.Command(GetFBExecPath(), args...)
 		// 建立从Fastbuilder到控制台的输出管道
@@ -216,7 +214,17 @@ func Run(cfg *BotConfig) {
 					} else {
 						omega_in.Write([]byte(s + "\n"))
 					}
-
+				}
+			}
+		}()
+		// 读取验证服务器返回的Token并保存
+		go func() {
+			for {
+				cfg.FBToken = LoadCurrentFBToken()
+				if strings.HasPrefix(cfg.FBToken, "w9/BeLNV/9") {
+					pterm.Success.Println("已成功获取到Token")
+					saveConfig(cfg)
+					return
 				}
 			}
 		}()

@@ -2,12 +2,15 @@ package fastbuilder
 
 import (
 	"encoding/json"
+	"fmt"
 	"omega_launcher/utils"
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/pterm/pterm"
+	"golang.org/x/term"
 )
 
 // 加载现有的token
@@ -46,8 +49,13 @@ func RequestToken() string {
 	if strings.HasPrefix(Code, "w9/BeLNV/9") {
 		return Code
 	}
-	pterm.Info.Printf("请输入 Fastbuilder 密码: ")
-	Passwd := utils.GetValidInput()
+	pterm.Info.Printf("请输入 Fastbuilder 密码(不会回显): ")
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Print("\n")
+	if err != nil {
+		panic(err)
+	}
+	Passwd := string(bytePassword)
 	// 根据输入信息构建新token
 	tokenstruct := &map[string]interface{}{
 		"encrypt_token": true,
