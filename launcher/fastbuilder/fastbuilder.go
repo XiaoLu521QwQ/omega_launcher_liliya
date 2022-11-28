@@ -183,11 +183,17 @@ func Run(cfg *BotConfig) {
 			reader := bufio.NewReader(omega_out)
 			for {
 				readString, err := reader.ReadString('\n')
-				if readString == lastInput {
+				if strings.HasPrefix(readString, "> ") {
+					readString = readString[2:]
+				}
+				if lastInput != "" && strings.HasPrefix(readString, lastInput) {
 					lastInput = ""
 					continue
 				}
 				lastInput = ""
+				if readString == "\n" {
+					continue
+				}
 				if err != nil || err == io.EOF {
 					//pterm.Error.Println("读取 Omega/Fastbuilder 输出内容时出现错误")
 					return
@@ -234,12 +240,12 @@ func Run(cfg *BotConfig) {
 		// 读取验证服务器返回的Token并保存
 		go func() {
 			for {
-				cfg.FBToken = LoadCurrentFBToken()
 				if strings.HasPrefix(cfg.FBToken, "w9/BeLNV/9") {
 					pterm.Success.Println("成功获取到Token")
 					saveConfig(cfg)
 					return
 				}
+				cfg.FBToken = LoadCurrentFBToken()
 			}
 		}()
 		// 启动并持续运行Fastbuilder
