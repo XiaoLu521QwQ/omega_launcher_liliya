@@ -9,9 +9,11 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/pterm/pterm"
+	"golang.org/x/term"
 )
 
 // 启动器配置文件结构
@@ -49,8 +51,13 @@ func FBTokenSetup(cfg *BotConfig) *BotConfig {
 func RentalServerSetup(cfg *BotConfig) *BotConfig {
 	pterm.Info.Printf("请输入租赁服账号: ")
 	cfg.RentalCode = utils.GetValidInput()
-	pterm.Info.Printf("请输入租赁服密码（没有则留空）: ")
-	cfg.RentalPasswd = utils.GetInput()
+	pterm.Info.Printf("请输入租赁服密码 (没有则留空，不会回显): ")
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Print("\n")
+	if err != nil {
+		panic(err)
+	}
+	cfg.RentalPasswd = string(bytePassword)
 	return cfg
 }
 
