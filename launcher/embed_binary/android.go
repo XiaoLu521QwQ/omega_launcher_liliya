@@ -7,6 +7,6 @@ import (
 	_ "embed"
 )
 
-//go:embed cqhttp-android
+//go:embed cqhttp-android.brotli
 var embedding_cqhttp []byte
 var PLANTFORM = Android_arm64

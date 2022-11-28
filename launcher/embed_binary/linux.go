@@ -7,6 +7,6 @@ import (
 	_ "embed"
 )
 
-//go:embed cqhttp-linux
+//go:embed cqhttp-linux.brotli
 var embedding_cqhttp []byte
 var PLANTFORM = Linux_x86_64

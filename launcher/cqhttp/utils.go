@@ -1,12 +1,15 @@
 package cqhttp
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/url"
 	"omega_launcher/embed_binary"
 	"omega_launcher/utils"
 	"path"
 	"path/filepath"
 
+	"github.com/andybalholm/brotli"
 	"github.com/gorilla/websocket"
 )
 
@@ -24,7 +27,13 @@ func GetCqHttpExec() string {
 }
 
 func GetCqHttpBinary() []byte {
-	return embed_binary.GetCqHttpBinary()
+	compressedData := embed_binary.GetCqHttpBinary()
+	var execBytes []byte
+	var err error
+	if execBytes, err = ioutil.ReadAll(brotli.NewReader(bytes.NewReader(compressedData))); err != nil {
+		panic(err)
+	}
+	return execBytes
 }
 
 func GetCQHttpHash() string {
