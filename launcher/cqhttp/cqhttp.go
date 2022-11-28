@@ -10,8 +10,10 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"syscall"
 
 	"github.com/pterm/pterm"
+	"golang.org/x/term"
 )
 
 //go:embed raw/组件-群服互通-1.json
@@ -63,7 +65,7 @@ func CQHttpEnablerHelper() {
 		panic("无法创建cqhttp_storage目录")
 	}
 	// 提示与确认
-	pterm.Warning.Println("请注意, 非本地环境只能通过上传 config.yml 与 device.json 的方式来配置 go-cqhttp")
+	pterm.Warning.Println("请注意, 非本地环境只能通过上传 config.yml, device.json 与 session.token 的方式来配置 go-cqhttp")
 	pterm.Info.Print("现在你可以进行文件上传的操作了, 输入 y 继续配置 go-cqhttp: ")
 	utils.GetInputYN()
 	// 配置文件路径
@@ -74,6 +76,13 @@ func CQHttpEnablerHelper() {
 		// 获取cqhttp配置信息
 		pterm.Info.Printf("请输入QQ账号: ")
 		Code := utils.GetValidInput()
+		pterm.Info.Printf("请输入QQ密码 (不会回显): ")
+		bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+		fmt.Print("\n")
+		if err != nil {
+			panic(err)
+		}
+		Passwd := string(bytePassword)
 		// 检查Omega配置文件的地址是否可用
 		if !utils.IsAddressAvailable(cfg.Configs.Address) {
 			port, err := utils.GetAvailablePort()
@@ -86,7 +95,8 @@ func CQHttpEnablerHelper() {
 		// 将获取的信息写入到cqhttp配置文件
 		cfgStr := strings.ReplaceAll(string(defaultConfigBytes), "[地址]", cfg.Configs.Address)
 		cfgStr = strings.ReplaceAll(cfgStr, "[QQ账号]", Code)
-		err := utils.WriteFileData(configFile, []byte(cfgStr))
+		cfgStr = strings.ReplaceAll(cfgStr, "[QQ密码]", fmt.Sprintf("'%s'", Passwd))
+		err = utils.WriteFileData(configFile, []byte(cfgStr))
 		if err != nil {
 			panic(err)
 		}
@@ -96,7 +106,7 @@ func CQHttpEnablerHelper() {
 			panic(err)
 		}
 	} else {
-		pterm.Success.Println("尝试使用 cqhttp_storage 目录下的 config.yml 与 device.json 来配置 go-cqhttp")
+		pterm.Success.Println("尝试使用 cqhttp_storage 目录下的 config.yml, device.json 与 session.token 来配置 go-cqhttp")
 	}
 	// 运行cqhttp
 	RunCQHttp()
@@ -149,7 +159,7 @@ func RunCQHttp() {
 	pterm.Success.Println("go-cqhttp 已经成功启动了, 可前往 omega_storage 文件夹对群服互通组件进行进一步配置")
 	pterm.Info.Println("若要为服务器配置群服互通, 请执行以下的操作：")
 	pterm.Info.Println("1. 在服务器使用启动器配置群服互通, 直至看到\"现在你可以进行文件上传..\"的提示")
-	pterm.Info.Println("2. 将本地 cqhttp_storage 目录下的 config.yml 与 device.json 上传至服务器同样的目录下")
+	pterm.Info.Println("2. 将本地 cqhttp_storage 目录下的 config.yml, device.json 与 session.token 上传至服务器同样的目录下")
 	pterm.Info.Println("3. 将本地 omega_storage/配置/群服互通 目录下的 组件-群服互通-1.json 上传至服务器同样的目录下")
 	pterm.Info.Println("4. 在服务器上进行确认, 此时应该配置成功了")
 	pterm.Info.Println("如果遇到意料之外的问题, 请重新操作或前往 https://docs.go-cqhttp.org/ 寻找可用的信息")
