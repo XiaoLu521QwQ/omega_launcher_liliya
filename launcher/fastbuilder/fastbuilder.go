@@ -151,6 +151,8 @@ func Run(cfg *BotConfig) {
 	for {
 		// 是否停止
 		isStopped := false
+		// 最近一次输入，用于忽略对输入内容的重复输出
+		lastInput := ""
 		// 启动时提示信息
 		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它将在 20 秒后自动重启")
 		// 启动命令
@@ -175,6 +177,11 @@ func Run(cfg *BotConfig) {
 			reader := bufio.NewReader(omega_out)
 			for {
 				readString, err := reader.ReadString('\n')
+				if readString == lastInput {
+					lastInput = ""
+					continue
+				}
+				lastInput = ""
 				if err != nil || err == io.EOF {
 					//pterm.Error.Println("读取 Omega/Fastbuilder 输出内容时出现错误")
 					return
@@ -201,6 +208,7 @@ func Run(cfg *BotConfig) {
 				case <-stop:
 					return
 				case s := <-readC:
+					lastInput = s
 					// 接收到停止命令时处理
 					if (cfg.StartOmega && s == "stop") || s == "exit" || s == "fbexit" {
 						// 关闭重启
@@ -222,7 +230,7 @@ func Run(cfg *BotConfig) {
 			for {
 				cfg.FBToken = LoadCurrentFBToken()
 				if strings.HasPrefix(cfg.FBToken, "w9/BeLNV/9") {
-					pterm.Success.Println("已成功获取到Token")
+					pterm.Success.Println("成功获取到Token")
 					saveConfig(cfg)
 					return
 				}
