@@ -30,15 +30,14 @@ type BotConfig struct {
 // 保存配置文件
 func saveConfig(cfg *BotConfig) {
 	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "服务器登录配置.json"), cfg); err != nil {
-		pterm.Error.Println("无法记录配置，不过可能不是什么大问题")
-		return
+		pterm.Error.Println("无法记录配置, 不过可能不是什么大问题")
 	}
 }
 
 // 配置Token
 func FBTokenSetup(cfg *BotConfig) *BotConfig {
 	if cfg.FBToken != "" {
-		pterm.Info.Printf("要使用上次的 Fastbuilder 账号登录吗?  要请输入 y , 需要修改请输入 n: ")
+		pterm.Info.Printf("要使用上次的 Fastbuilder 账号登录吗? 要请输入 y, 需要修改请输入 n: ")
 		if utils.GetInputYN() {
 			return cfg
 		}
@@ -49,9 +48,9 @@ func FBTokenSetup(cfg *BotConfig) *BotConfig {
 
 // 配置租赁服信息
 func RentalServerSetup(cfg *BotConfig) *BotConfig {
-	pterm.Info.Printf("请输入租赁服账号: ")
+	pterm.Info.Printf("请输入租赁服号: ")
 	cfg.RentalCode = utils.GetValidInput()
-	pterm.Info.Printf("请输入租赁服密码 (没有则留空，不会回显): ")
+	pterm.Info.Printf("请输入租赁服密码 (没有则留空, 不会回显): ")
 	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 	fmt.Print("\n")
 	if err != nil {
@@ -80,7 +79,7 @@ func StartHelper() {
 				if utils.IsDir(path.Join(utils.GetCurrentDir(), "omega_storage")) {
 					cqhttp.RunCQHttp()
 				} else {
-					pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
+					pterm.Warning.Println("在Omega首次启动成功之前, 将不会进行群服互通的配置")
 				}
 			}
 			// 启动Omega或者FB
@@ -89,12 +88,12 @@ func StartHelper() {
 		}
 	}
 	// 配置FB更新
-	pterm.Info.Printf("需要启动器帮忙下载或更新 Fastbuilder 吗?  要请输入 y, 不要请输入 n: ")
+	pterm.Info.Printf("需要启动器帮忙下载或更新 Fastbuilder 吗? 要请输入 y, 不要请输入 n: ")
 	if utils.GetInputYN() {
 		UpdateFB(botConfig, true)
 		botConfig.UpdateFB = true
 	} else {
-		pterm.Warning.Println("将会使用该路径的 Fastbuilder：" + GetFBExecPath())
+		pterm.Warning.Println("将会使用该路径的 Fastbuilder: " + GetFBExecPath())
 		botConfig.UpdateFB = false
 		time.Sleep(time.Second)
 	}
@@ -102,7 +101,7 @@ func StartHelper() {
 	botConfig = FBTokenSetup(botConfig)
 	// 配置租赁服登录
 	if botConfig.RentalCode != "" {
-		pterm.Info.Printf("要使用上次的租赁服配置吗?  要请输入 y, 不要请输入 n : ")
+		pterm.Info.Printf("要使用上次的租赁服配置吗? 要请输入 y, 不要请输入 n : ")
 		if !utils.GetInputYN() {
 			botConfig = RentalServerSetup(botConfig)
 		}
@@ -110,12 +109,12 @@ func StartHelper() {
 		botConfig = RentalServerSetup(botConfig)
 	}
 	// 询问是否使用Omega
-	pterm.Info.Printf("要启动 Omega 还是 Fastbuilder?  启动 Omega 请输入 y, 启动 Fastbuilder 请输入 n: ")
+	pterm.Info.Printf("要启动 Omega 还是 Fastbuilder? 启动 Omega 请输入 y, 启动 Fastbuilder 请输入 n: ")
 	if utils.GetInputYN() {
 		botConfig.StartOmega = true
 		// 配置群服互通
 		if utils.IsDir(path.Join(utils.GetCurrentDir(), "omega_storage")) {
-			pterm.Info.Printf("需要启动器帮忙配置群服互通吗?  要请输入 y, 不要请输入 n: ")
+			pterm.Info.Printf("需要启动器帮忙配置群服互通吗? 要请输入 y, 不要请输入 n: ")
 			if utils.GetInputYN() {
 				cqhttp.CQHttpEnablerHelper()
 				botConfig.QGroupLinkEnable = true
@@ -123,7 +122,7 @@ func StartHelper() {
 				botConfig.QGroupLinkEnable = false
 			}
 		} else {
-			pterm.Warning.Println("在Omega完全启动前，将不会进行群服互通的配置")
+			pterm.Warning.Println("在Omega完全启动前, 将不会进行群服互通的配置")
 			botConfig.QGroupLinkEnable = false
 		}
 	} else {
@@ -158,10 +157,10 @@ func Run(cfg *BotConfig) {
 	for {
 		// 是否停止
 		isStopped := false
-		// 最近一次输入，用于忽略对输入内容的重复输出
+		// 最近一次输入, 用于忽略对输入内容的重复输出
 		lastInput := ""
 		// 启动时提示信息
-		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了，它将在 20 秒后自动重启")
+		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了, 它将在 20 秒后自动重启")
 		// 启动命令
 		cmd := exec.Command(GetFBExecPath(), args...)
 		// 建立从Fastbuilder到控制台的输出管道
@@ -208,7 +207,7 @@ func Run(cfg *BotConfig) {
 				pterm.Error.Println(readString)
 			}
 		}()
-		// 在未收到停止信号前，启动器会一直将控制台输入的内容通过管道发送给Fastbuilder
+		// 在未收到停止信号前, 启动器会一直将控制台输入的内容通过管道发送给Fastbuilder
 		go func() {
 			for {
 				select {
@@ -254,19 +253,19 @@ func Run(cfg *BotConfig) {
 			pterm.Error.Println("Omega/Fastbuilder 运行时出现错误")
 			pterm.Error.Println(err)
 		}
-		// 如果运行到这里，说明Fastbuilder出现错误或退出运行了
+		// 如果运行到这里, 说明Fastbuilder出现错误或退出运行了
 		cmd.Process.Kill()
 		// 判断是否正常退出
 		if isStopped {
-			pterm.Success.Println("Omega/Fastbuilder 已正常退出，启动器将结束运行")
+			pterm.Success.Println("Omega/Fastbuilder 已正常退出, 启动器将结束运行")
 			time.Sleep(3 * time.Second)
 			break
 		} else {
 			stop <- "stop!!"
 			pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
 		}
-		// 为了避免频繁请求，崩溃后将等待20秒后重启，可手动跳过等待
-		pterm.Warning.Print("似乎发生了错误，要重启 Omega/Fastbuilder 吗? 请按回车确认(20秒后会自动确认): ")
+		// 为了避免频繁请求, 崩溃后将等待20秒后重启, 可手动跳过等待
+		pterm.Warning.Print("似乎发生了错误, 要重启 Omega/Fastbuilder 吗? 请按回车确认 (20秒后会自动确认): ")
 		// 等待输入或计时结束
 		select {
 		case <-readC:
