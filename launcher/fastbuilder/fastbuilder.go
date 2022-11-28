@@ -122,7 +122,7 @@ func StartHelper() {
 				botConfig.QGroupLinkEnable = false
 			}
 		} else {
-			pterm.Warning.Println("在Omega完全启动前, 将不会进行群服互通的配置")
+			pterm.Warning.Println("在Omega首次启动成功之前, 将不会进行群服互通的配置")
 			botConfig.QGroupLinkEnable = false
 		}
 	} else {
