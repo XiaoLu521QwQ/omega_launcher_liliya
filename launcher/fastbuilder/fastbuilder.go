@@ -75,7 +75,7 @@ func StartHelper() {
 				UpdateFB(botConfig, false)
 			}
 			// 群服互通
-			if botConfig.QGroupLinkEnable {
+			if botConfig.QGroupLinkEnable && botConfig.StartOmega {
 				cqhttp.RunCQHttp()
 			}
 			// 启动Omega或者FB
@@ -85,12 +85,12 @@ func StartHelper() {
 	}
 	// 配置FB更新
 	pterm.Info.Printf("需要启动器帮忙下载或更新 Fastbuilder 吗? 要请输入 y, 不要请输入 n: ")
+	botConfig.UpdateFB = false
 	if utils.GetInputYN() {
 		UpdateFB(botConfig, true)
 		botConfig.UpdateFB = true
 	} else {
 		pterm.Warning.Println("将会使用该路径的 Fastbuilder: " + GetFBExecPath())
-		botConfig.UpdateFB = false
 		time.Sleep(time.Second)
 	}
 	// 配置FB
@@ -106,19 +106,25 @@ func StartHelper() {
 	}
 	// 询问是否使用Omega
 	pterm.Info.Printf("要启动 Omega 还是 Fastbuilder? 启动 Omega 请输入 y, 启动 Fastbuilder 请输入 n: ")
+	botConfig.StartOmega = false
 	if utils.GetInputYN() {
 		botConfig.StartOmega = true
 		// 配置群服互通
 		pterm.Info.Printf("需要启动器帮忙配置群服互通吗? 要请输入 y, 不要请输入 n: ")
-		if utils.GetInputYN() {
-			cqhttp.CQHttpEnablerHelper()
-			botConfig.QGroupLinkEnable = true
-		} else {
-			botConfig.QGroupLinkEnable = false
-		}
-	} else {
-		botConfig.StartOmega = false
 		botConfig.QGroupLinkEnable = false
+		if utils.GetInputYN() {
+			botConfig.QGroupLinkEnable = true
+			if !utils.IsDir(path.Join(utils.GetCurrentDir(), "omega_storage")) {
+				pterm.Warning.Printf("首次启动时配置群服互通会导致新生成的组件均为非启用状态, 要继续吗? 要请输入 y, 不要请输入 n: ")
+				if utils.GetInputYN() {
+					cqhttp.CQHttpEnablerHelper()
+				} else {
+					botConfig.QGroupLinkEnable = false
+				}
+			} else {
+				cqhttp.CQHttpEnablerHelper()
+			}
+		}
 	}
 	// 启动Omega或者FB
 	Run(botConfig)
@@ -144,6 +150,17 @@ func Run(cfg *BotConfig) {
 		for {
 			s := utils.GetInput()
 			readC <- s
+		}
+	}()
+	// 读取验证服务器返回的Token并保存
+	go func() {
+		for {
+			if strings.HasPrefix(cfg.FBToken, "w9/BeLNV/9") {
+				pterm.Success.Println("成功获取到Token")
+				saveConfig(cfg)
+				return
+			}
+			cfg.FBToken = LoadCurrentFBToken()
 		}
 	}()
 	for {
@@ -225,17 +242,6 @@ func Run(cfg *BotConfig) {
 						omega_in.Write([]byte(s + "\n"))
 					}
 				}
-			}
-		}()
-		// 读取验证服务器返回的Token并保存
-		go func() {
-			for {
-				if strings.HasPrefix(cfg.FBToken, "w9/BeLNV/9") {
-					pterm.Success.Println("成功获取到Token")
-					saveConfig(cfg)
-					return
-				}
-				cfg.FBToken = LoadCurrentFBToken()
 			}
 		}()
 		// 启动并持续运行Fastbuilder
