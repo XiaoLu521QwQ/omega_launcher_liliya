@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"omega_launcher/utils"
 	"os/exec"
 	"path"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/pterm/pterm"
 	"golang.org/x/term"
+	v2 "gopkg.in/yaml.v2"
 )
 
 //go:embed raw/组件-群服互通-1.json
@@ -36,6 +38,7 @@ type QGroupLink struct {
 	AllowedCmdExecutor        map[int64]bool                `json:"允许这些人透过QQ执行命令"`
 	AllowdFakeCmdExecutor     map[int64]map[string][]string `json:"允许这些人透过QQ执行伪命令"`
 	DenyCmds                  map[string]string             `json:"屏蔽这些指令"`
+	AllowCmds                 []string                      `json:"允许所有人使用这些指令"`
 }
 
 type ComponentConfig struct {
@@ -47,7 +50,42 @@ type ComponentConfig struct {
 	Configs     *QGroupLink `json:"配置"`
 }
 
-func CQHttpInit(cfg *ComponentConfig, configFile string) {
+type CQHttpConfig struct {
+	Account struct {
+		Uin      string `yaml:"uin"`
+		Password string `yaml:"password"`
+	}
+}
+
+// 从cqhttp配置里读取QQ账密信息
+func getInfoFormCQConfig(configFile string) *CQHttpConfig {
+	cfg := &CQHttpConfig{}
+	data, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return nil
+	}
+	if err := v2.Unmarshal(data, &cfg); err != nil {
+		return nil
+	}
+	if cfg.Account.Uin == "" || cfg.Account.Password == "" {
+		return nil
+	}
+	return cfg
+}
+
+// 将信息写入cqhttp配置文件
+func updateCQHttpConfig(configFile, address, account, password string) {
+	// 将获取的信息写入到cqhttp配置文件
+	cfgStr := strings.ReplaceAll(string(defaultConfigBytes), "[地址]", address)
+	cfgStr = strings.ReplaceAll(cfgStr, "[QQ账号]", account)
+	cfgStr = strings.ReplaceAll(cfgStr, "[QQ密码]", fmt.Sprintf("'%s'", password))
+	err := utils.WriteFileData(configFile, []byte(cfgStr))
+	if err != nil {
+		panic(err)
+	}
+}
+
+func cqhttpInit(cfg *ComponentConfig, configFile string) {
 	// 获取cqhttp配置信息
 	pterm.Info.Printf("请输入QQ账号: ")
 	Code := utils.GetValidInput()
@@ -67,14 +105,7 @@ func CQHttpInit(cfg *ComponentConfig, configFile string) {
 		}
 		cfg.Configs.Address = fmt.Sprintf("127.0.0.1:%d", port)
 	}
-	// 将获取的信息写入到cqhttp配置文件
-	cfgStr := strings.ReplaceAll(string(defaultConfigBytes), "[地址]", cfg.Configs.Address)
-	cfgStr = strings.ReplaceAll(cfgStr, "[QQ账号]", Code)
-	cfgStr = strings.ReplaceAll(cfgStr, "[QQ密码]", fmt.Sprintf("'%s'", Passwd))
-	err = utils.WriteFileData(configFile, []byte(cfgStr))
-	if err != nil {
-		panic(err)
-	}
+	updateCQHttpConfig(configFile, cfg.Configs.Address, Code, Passwd)
 }
 
 func CQHttpEnablerHelper() {
@@ -108,11 +139,15 @@ func CQHttpEnablerHelper() {
 		pterm.Info.Print("已读取到 go-cqhttp 配置文件, 要使用吗? 使用请输入 y, 需要重新设置请输入 n: ")
 		if utils.GetInputYN() {
 			pterm.Warning.Println("尝试使用 cqhttp_storage 目录下的 config.yml, device.json 与 session.token 来配置 go-cqhttp")
+			// 在使用上次的配置时，将读取cqhttp配置文件的账密以及群服互通组件的地址，然后对cqhttp配置文件进行更新
+			if re := getInfoFormCQConfig(configFile); re != nil {
+				updateCQHttpConfig(configFile, cfg.Configs.Address, re.Account.Uin, re.Account.Password)
+			}
 		} else {
-			CQHttpInit(cfg, configFile)
+			cqhttpInit(cfg, configFile)
 		}
 	} else {
-		CQHttpInit(cfg, configFile)
+		cqhttpInit(cfg, configFile)
 	}
 	// 更新Omega群服互通组件配置
 	err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg)
