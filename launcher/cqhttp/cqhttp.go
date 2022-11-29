@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"omega_launcher/utils"
+	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -60,7 +60,7 @@ type CQHttpConfig struct {
 // 从cqhttp配置里读取QQ账密信息
 func getInfoFormCQConfig(configFile string) *CQHttpConfig {
 	cfg := &CQHttpConfig{}
-	data, err := ioutil.ReadFile(configFile)
+	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil
 	}
@@ -109,11 +109,10 @@ func cqhttpInit(cfg *ComponentConfig, configFile string) {
 }
 
 func CQHttpEnablerHelper() {
+	utils.MkDir(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通"))
 	// 尝试读取Omega配置, 读取出错时使用默认配置
 	cfg := &ComponentConfig{}
-	if err := utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg); err != nil {
-		panic(err)
-	}
+	utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg)
 	if cfg.Configs == nil {
 		err := json.Unmarshal(defaultQGroupLinkConfigByte, cfg)
 		if err != nil {
@@ -162,9 +161,7 @@ func RunCQHttp() {
 	pterm.Warning.Println("如果长时间未启动Omega, 请检查 config.yml 与 组件-群服互通-1.json 设置的地址是否一致")
 	// 尝试读取Omega配置, 读取出错时使用默认配置
 	cfg := &ComponentConfig{}
-	if err := utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg); err != nil {
-		panic(err)
-	}
+	utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg)
 	if cfg.Configs == nil {
 		err := json.Unmarshal(defaultQGroupLinkConfigByte, cfg)
 		if err != nil {

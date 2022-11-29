@@ -13,7 +13,7 @@ func IsDir(path string) bool {
 
 func MkDir(path string) bool {
 	if !IsDir(path) {
-		err := os.Mkdir(path, 0755)
+		err := os.MkdirAll(path, 0755)
 		if err != nil {
 			return false
 		}

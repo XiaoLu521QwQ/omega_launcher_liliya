@@ -76,11 +76,7 @@ func StartHelper() {
 			}
 			// 群服互通
 			if botConfig.QGroupLinkEnable {
-				if utils.IsDir(path.Join(utils.GetCurrentDir(), "omega_storage")) {
-					cqhttp.RunCQHttp()
-				} else {
-					pterm.Warning.Println("在Omega首次启动成功之前, 将不会进行群服互通的配置")
-				}
+				cqhttp.RunCQHttp()
 			}
 			// 启动Omega或者FB
 			Run(botConfig)
@@ -113,16 +109,11 @@ func StartHelper() {
 	if utils.GetInputYN() {
 		botConfig.StartOmega = true
 		// 配置群服互通
-		if utils.IsDir(path.Join(utils.GetCurrentDir(), "omega_storage")) {
-			pterm.Info.Printf("需要启动器帮忙配置群服互通吗? 要请输入 y, 不要请输入 n: ")
-			if utils.GetInputYN() {
-				cqhttp.CQHttpEnablerHelper()
-				botConfig.QGroupLinkEnable = true
-			} else {
-				botConfig.QGroupLinkEnable = false
-			}
+		pterm.Info.Printf("需要启动器帮忙配置群服互通吗? 要请输入 y, 不要请输入 n: ")
+		if utils.GetInputYN() {
+			cqhttp.CQHttpEnablerHelper()
+			botConfig.QGroupLinkEnable = true
 		} else {
-			pterm.Warning.Println("在Omega首次启动成功之前, 将不会进行群服互通的配置")
 			botConfig.QGroupLinkEnable = false
 		}
 	} else {
