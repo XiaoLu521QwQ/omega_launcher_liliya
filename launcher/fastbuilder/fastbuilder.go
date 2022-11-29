@@ -127,6 +127,7 @@ func StartHelper() {
 		}
 	} else {
 		botConfig.StartOmega = false
+		botConfig.QGroupLinkEnable = false
 	}
 	// 启动Omega或者FB
 	Run(botConfig)
@@ -183,9 +184,7 @@ func Run(cfg *BotConfig) {
 			reader := bufio.NewReader(omega_out)
 			for {
 				readString, err := reader.ReadString('\n')
-				if strings.HasPrefix(readString, "> ") {
-					readString = readString[2:]
-				}
+				readString = strings.TrimPrefix(readString, "> ")
 				if lastInput != "" && strings.HasPrefix(readString, lastInput) {
 					lastInput = ""
 					continue
