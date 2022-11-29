@@ -47,10 +47,43 @@ type ComponentConfig struct {
 	Configs     *QGroupLink `json:"配置"`
 }
 
+func CQHttpInit(cfg *ComponentConfig, configFile string) {
+	// 获取cqhttp配置信息
+	pterm.Info.Printf("请输入QQ账号: ")
+	Code := utils.GetValidInput()
+	pterm.Info.Printf("请输入QQ密码 (不会回显): ")
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
+	fmt.Print("\n")
+	if err != nil {
+		panic(err)
+	}
+	Passwd := string(bytePassword)
+	// 检查Omega配置文件的地址是否可用
+	if !utils.IsAddressAvailable(cfg.Configs.Address) {
+		port, err := utils.GetAvailablePort()
+		if err != nil {
+			pterm.Error.Println("无法为 go-cqhttp 获取可用端口")
+			panic(err)
+		}
+		cfg.Configs.Address = fmt.Sprintf("127.0.0.1:%d", port)
+	}
+	// 将获取的信息写入到cqhttp配置文件
+	cfgStr := strings.ReplaceAll(string(defaultConfigBytes), "[地址]", cfg.Configs.Address)
+	cfgStr = strings.ReplaceAll(cfgStr, "[QQ账号]", Code)
+	cfgStr = strings.ReplaceAll(cfgStr, "[QQ密码]", fmt.Sprintf("'%s'", Passwd))
+	err = utils.WriteFileData(configFile, []byte(cfgStr))
+	if err != nil {
+		panic(err)
+	}
+}
+
 func CQHttpEnablerHelper() {
 	// 尝试读取Omega配置, 读取出错时使用默认配置
 	cfg := &ComponentConfig{}
 	if err := utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg); err != nil {
+		panic(err)
+	}
+	if cfg.Configs == nil {
 		err := json.Unmarshal(defaultQGroupLinkConfigByte, cfg)
 		if err != nil {
 			panic(err)
@@ -70,43 +103,21 @@ func CQHttpEnablerHelper() {
 	utils.GetInputYN()
 	// 配置文件路径
 	configFile := path.Join(utils.GetCurrentDir(), "cqhttp_storage", "config.yml")
-	omegaConfigFile := path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json")
 	// 如果go-cqhttp配置文件不存在, 则执行初始化操作
-	if !utils.IsFile(configFile) {
-		// 获取cqhttp配置信息
-		pterm.Info.Printf("请输入QQ账号: ")
-		Code := utils.GetValidInput()
-		pterm.Info.Printf("请输入QQ密码 (不会回显): ")
-		bytePassword, err := term.ReadPassword(int(syscall.Stdin))
-		fmt.Print("\n")
-		if err != nil {
-			panic(err)
-		}
-		Passwd := string(bytePassword)
-		// 检查Omega配置文件的地址是否可用
-		if !utils.IsAddressAvailable(cfg.Configs.Address) {
-			port, err := utils.GetAvailablePort()
-			if err != nil {
-				pterm.Error.Println("无法为 go-cqhttp 获取可用端口")
-				panic(err)
-			}
-			cfg.Configs.Address = fmt.Sprintf("127.0.0.1:%d", port)
-		}
-		// 将获取的信息写入到cqhttp配置文件
-		cfgStr := strings.ReplaceAll(string(defaultConfigBytes), "[地址]", cfg.Configs.Address)
-		cfgStr = strings.ReplaceAll(cfgStr, "[QQ账号]", Code)
-		cfgStr = strings.ReplaceAll(cfgStr, "[QQ密码]", fmt.Sprintf("'%s'", Passwd))
-		err = utils.WriteFileData(configFile, []byte(cfgStr))
-		if err != nil {
-			panic(err)
-		}
-		// 更新Omega群服互通组件配置
-		err = utils.WriteJsonData(omegaConfigFile, cfg)
-		if err != nil {
-			panic(err)
+	if utils.IsFile(configFile) {
+		pterm.Info.Print("已读取到 go-cqhttp 配置文件, 要使用吗? 使用请输入 y, 需要重新设置请输入 n: ")
+		if utils.GetInputYN() {
+			pterm.Warning.Println("尝试使用 cqhttp_storage 目录下的 config.yml, device.json 与 session.token 来配置 go-cqhttp")
+		} else {
+			CQHttpInit(cfg, configFile)
 		}
 	} else {
-		pterm.Success.Println("尝试使用 cqhttp_storage 目录下的 config.yml, device.json 与 session.token 来配置 go-cqhttp")
+		CQHttpInit(cfg, configFile)
+	}
+	// 更新Omega群服互通组件配置
+	err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg)
+	if err != nil {
+		panic(err)
 	}
 	// 运行cqhttp
 	RunCQHttp()
@@ -117,6 +128,9 @@ func RunCQHttp() {
 	// 尝试读取Omega配置, 读取出错时使用默认配置
 	cfg := &ComponentConfig{}
 	if err := utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg); err != nil {
+		panic(err)
+	}
+	if cfg.Configs == nil {
 		err := json.Unmarshal(defaultQGroupLinkConfigByte, cfg)
 		if err != nil {
 			panic(err)
