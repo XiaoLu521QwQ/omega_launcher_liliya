@@ -10,9 +10,9 @@
 
 **运行方式**
 
-    方式一：在 build 文件夹内下载并运行对应的版本
+    方式一：从 Releases 下载并运行对应的版本
 
-    方式二：使用 docker 文件夹下的 Dockerfile 构建镜像并使用
+    方式二：使用 docker 文件夹下的 Dockerfile-launcher 构建镜像并使用
 
 **注意事项**
 

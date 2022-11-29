@@ -11,7 +11,7 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.bfsu.edu.cn/g' /etc/apt/sources.list \
     && dpkg-reconfigure -f noninteractive tzdata \
     && mkdir /ome && cd /ome \
 #    && wget https://***/res/launcher/launcher_linux \
-    && wget https://github.com/Liliya233/omega_launcher/raw/main/build/launcher_linux \
+    && wget https://github.com/Liliya233/omega_launcher/releases/latest/download/launcher_linux \
     && chmod +x /ome/launcher_linux \
     && mkdir /workspace \
     && apt clean -yq && apt autoclean -yq && apt autoremove -yq && rm -rf /var/lib/apt/lists/* \
