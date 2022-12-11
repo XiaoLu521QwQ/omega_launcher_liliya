@@ -2,7 +2,7 @@ package cqhttp
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"omega_launcher/embed_binary"
 	"omega_launcher/utils"
@@ -30,7 +30,7 @@ func GetCqHttpBinary() []byte {
 	compressedData := embed_binary.GetCqHttpBinary()
 	var execBytes []byte
 	var err error
-	if execBytes, err = ioutil.ReadAll(brotli.NewReader(bytes.NewReader(compressedData))); err != nil {
+	if execBytes, err = io.ReadAll(brotli.NewReader(bytes.NewReader(compressedData))); err != nil {
 		panic(err)
 	}
 	return execBytes
@@ -48,9 +48,7 @@ func GetEmbeddedCQHttpHash() string {
 func WaitConnect(addr string) {
 	for {
 		u := url.URL{Scheme: "ws", Host: addr}
-		var err error
-		_, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
-		if err != nil {
+		if _, _, err := websocket.DefaultDialer.Dial(u.String(), nil); err != nil {
 			// time.Sleep(1)
 			continue
 		} else {

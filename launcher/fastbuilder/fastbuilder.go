@@ -131,6 +131,8 @@ func StartHelper() {
 }
 
 func Run(cfg *BotConfig) {
+	// 打印警告信息, Windows新版终端存在此问题，暂时没找到解决方法（
+	pterm.Warning.Println("对于Windows新版终端, 直接点击关闭按钮会导致程序在后台持续运行")
 	// 配置启动参数
 	args := []string{"-M", "--plain-token", cfg.FBToken, "--no-update-check", "-c", cfg.RentalCode}
 	// 是否需要租赁服密码
@@ -141,6 +143,9 @@ func Run(cfg *BotConfig) {
 	// 是否启动Omega
 	if cfg.StartOmega {
 		args = append(args, "-O")
+		pterm.Warning.Println("请使用 stop 命令来正确的退出程序")
+	} else {
+		pterm.Warning.Println("请使用 exit / fbexit 命令来正确的退出程序")
 	}
 	// 建立频道
 	readC := make(chan string)
