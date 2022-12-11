@@ -1,3 +1,5 @@
+SET CGO_ENABLED=0
+SET GOARCH=amd64
 SET GOOS=windows
 go build -ldflags="-w -s" -o ../build/launcher.exe
 SET GOOS=linux
