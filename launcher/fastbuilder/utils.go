@@ -12,14 +12,23 @@ import (
 func GetFBExecName() string {
 	name := ""
 	switch embed_binary.GetPlantform() {
+	case embed_binary.WINDOWS_arm64:
+		// 不存在该构建
+		name = ""
 	case embed_binary.WINDOWS_x86_64:
 		name = "phoenixbuilder-windows-executable-x86_64.exe"
+	case embed_binary.Linux_arm64:
+		name = "phoenixbuilder-aarch64"
 	case embed_binary.Linux_x86_64:
 		name = "phoenixbuilder"
+	case embed_binary.MACOS_arm64:
+		name = "phoenixbuilder-macos-arm64"
 	case embed_binary.MACOS_x86_64:
 		name = "phoenixbuilder-macos-x86_64"
 	case embed_binary.Android_arm64:
 		name = "phoenixbuilder-android-executable-arm64"
+	case embed_binary.Android_x86_64:
+		name = "phoenixbuilder-android-executable-x86_64"
 	}
 	return name
 }
@@ -52,7 +61,7 @@ func GetRemoteFBHash(url string) string {
 	}
 	hash = hashMap[GetFBExecName()]
 	if hash == "" {
-		panic("未知平台" + embed_binary.GetPlantform())
+		panic("尚未支持该平台" + embed_binary.GetPlantform())
 	}
 	return hash
 }
