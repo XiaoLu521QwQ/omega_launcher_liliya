@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"omega_launcher/utils"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -18,7 +20,7 @@ import (
 	v2 "gopkg.in/yaml.v2"
 )
 
-//go:embed raw/组件-群服互通-1.json
+//go:embed raw/组件-群服互通.json
 var defaultQGroupLinkConfigByte []byte
 
 //go:embed raw/config.yml
@@ -39,6 +41,8 @@ type QGroupLink struct {
 	AllowdFakeCmdExecutor     map[int64]map[string][]string `json:"允许这些人透过QQ执行伪命令"`
 	DenyCmds                  map[string]string             `json:"屏蔽这些指令"`
 	AllowCmds                 []string                      `json:"允许所有人使用这些指令"`
+	SendJoinAndLeaveMsg       bool                          `json:"向Q群发送玩家进出消息"`
+	ShowExchangeDetail        bool                          `json:"在控制台显示消息转发详情"`
 }
 
 type ComponentConfig struct {
@@ -108,20 +112,64 @@ func cqhttpInit(cfg *ComponentConfig, configFile string) {
 	updateCQHttpConfig(configFile, cfg.Configs.Address, Code, Passwd)
 }
 
-func CQHttpEnablerHelper() {
+func getOmegaConfig() *ComponentConfig {
+	// 确保此路径可用
 	utils.MkDir(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通"))
-	// 尝试读取Omega配置, 读取出错时使用默认配置
+	// 默认的空配置
 	cfg := &ComponentConfig{}
-	utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg)
-	if cfg.Configs == nil {
-		pterm.Warning.Printfln("没有读取到\"组件-群服互通-1.json\", 启动器将使用默认配置来配置群服互通")
+	// 默认配置文件路径
+	fp := path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通.json")
+	// 尝试从配置文件夹下寻找全部群服互通配置文件
+	if err := filepath.Walk(path.Join(utils.GetCurrentDir(), "omega_storage", "配置"), func(filePath string, info fs.FileInfo, err error) error {
+		// 跳过目录
+		if info.IsDir() {
+			return nil
+		}
+		// 识别非json组件文件并跳过
+		fileName := info.Name()
+		if !strings.HasPrefix(fileName, "组件") || !strings.HasSuffix(fileName, ".json") {
+			return nil
+		}
+		// 对配置文件进行解析
+		currentCfg := &ComponentConfig{}
+		if parseErr := utils.GetJsonData(filePath, currentCfg); parseErr != nil {
+			return nil
+		}
+		// 如果不是群服互通组件, 则跳过
+		if currentCfg.Name != "群服互通" {
+			return nil
+		}
+		// 如果存在多个群服互通组件, 则报错
+		if cfg.Configs != nil {
+			panic("当前存在多个群服互通组件, 请手动删除多余的群服互通组件")
+		}
+		// 更新配置与路径信息
+		cfg = currentCfg
+		fp = filePath
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+	// 未找到配置时, 使用默认配置
+	if cfg.Name != "群服互通" {
+		pterm.Warning.Printfln("没有读取到现有的群服互通配置, 将使用默认配置来配置群服互通")
 		err := json.Unmarshal(defaultQGroupLinkConfigByte, cfg)
 		if err != nil {
 			panic(err)
 		}
 	} else {
-		pterm.Success.Printfln("成功读取到现有的\"组件-群服互通-1.json\", 将使用此配置来配置群服互通")
+		pterm.Success.Printfln("成功读取到现有的群服互通配置, 将使用此配置来配置群服互通")
 	}
+	// 更新Omega群服互通组件配置
+	err := utils.WriteJsonData(fp, cfg)
+	if err != nil {
+		panic(err)
+	}
+	return cfg
+}
+
+func CQHttpEnablerHelper() {
+	cfg := getOmegaConfig()
 	// 解压go-cqhttp失败则退出
 	if err := utils.WriteFileData(GetCqHttpExec(), GetCqHttpBinary()); err != nil {
 		panic(err)
@@ -151,26 +199,14 @@ func CQHttpEnablerHelper() {
 	} else {
 		cqhttpInit(cfg, configFile)
 	}
-	// 更新Omega群服互通组件配置
-	err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg)
-	if err != nil {
-		panic(err)
-	}
 	// 运行cqhttp
 	RunCQHttp()
 }
 
 func RunCQHttp() {
 	pterm.Warning.Println("如果长时间未启动Omega, 请检查\"config.yml\"与\"Omega群服互通组件配置\"设置的地址是否一致")
-	// 尝试读取Omega配置, 读取出错时使用默认配置
-	cfg := &ComponentConfig{}
-	utils.GetJsonData(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通-1.json"), cfg)
-	if cfg.Configs == nil {
-		err := json.Unmarshal(defaultQGroupLinkConfigByte, cfg)
-		if err != nil {
-			panic(err)
-		}
-	}
+	// 读取Omega配置
+	cfg := getOmegaConfig()
 	// 配置启动参数
 	args := []string{"-faststart"}
 	// 配置执行目录
@@ -209,7 +245,7 @@ func RunCQHttp() {
 	pterm.Info.Println("若要为服务器配置群服互通, 请执行以下的操作：")
 	pterm.Info.Println("1. 在服务器使用启动器配置群服互通, 直至看到\"现在你可以进行文件上传..\"的提示")
 	pterm.Info.Println("2. 将本地\"cqhttp_storage\"目录下的\"config.yml\",\"device.json\"与\"session.token\"上传至服务器同样的目录下")
-	pterm.Info.Println("3. 将本地\"omega_storage/配置/群服互通\"目录下的\"组件-群服互通-1.json\"上传至服务器同样的目录下")
+	pterm.Info.Println("3. 将本地\"omega_storage/配置\"目录下的群服互通组件上传至服务器同样的目录下")
 	pterm.Info.Println("4. 在服务器上进行确认, 此时应该配置成功了")
 	pterm.Info.Println("如果遇到意料之外的问题, 请重新操作或前往 https://docs.go-cqhttp.org/ 寻找可用的信息")
 }
