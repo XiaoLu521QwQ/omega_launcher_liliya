@@ -114,13 +114,13 @@ func cqhttpInit(cfg *ComponentConfig, configFile string) {
 
 func getOmegaConfig() *ComponentConfig {
 	// 确保此路径可用
-	utils.MkDir(path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通"))
+	utils.MkDir(path.Join(utils.GetCurrentDataDir(), "omega_storage", "配置", "群服互通"))
 	// 默认的空配置
 	cfg := &ComponentConfig{}
 	// 默认配置文件路径
-	fp := path.Join(utils.GetCurrentDir(), "omega_storage", "配置", "群服互通", "组件-群服互通.json")
+	fp := path.Join(utils.GetCurrentDataDir(), "omega_storage", "配置", "群服互通", "组件-群服互通.json")
 	// 尝试从配置文件夹下寻找全部群服互通配置文件
-	if err := filepath.Walk(path.Join(utils.GetCurrentDir(), "omega_storage", "配置"), func(filePath string, info fs.FileInfo, err error) error {
+	if err := filepath.Walk(path.Join(utils.GetCurrentDataDir(), "omega_storage", "配置"), func(filePath string, info fs.FileInfo, err error) error {
 		// 跳过目录
 		if info.IsDir() {
 			return nil
@@ -175,7 +175,7 @@ func CQHttpEnablerHelper() {
 		panic(err)
 	}
 	// 无法创建目录则退出
-	if !utils.MkDir(path.Join(utils.GetCurrentDir(), "cqhttp_storage")) {
+	if !utils.MkDir(path.Join(utils.GetCurrentDataDir(), "cqhttp_storage")) {
 		panic("无法创建 cqhttp_storage 目录")
 	}
 	// 提示与确认
@@ -183,7 +183,7 @@ func CQHttpEnablerHelper() {
 	pterm.Info.Print("现在你可以进行文件上传的操作了, 输入 y 继续配置 go-cqhttp: ")
 	utils.GetInputYN()
 	// 配置文件路径
-	configFile := path.Join(utils.GetCurrentDir(), "cqhttp_storage", "config.yml")
+	configFile := path.Join(utils.GetCurrentDataDir(), "cqhttp_storage", "config.yml")
 	// 如果go-cqhttp配置文件不存在, 则执行初始化操作
 	if utils.IsFile(configFile) {
 		pterm.Info.Print("已读取到 go-cqhttp 配置文件, 要使用吗? 使用请输入 y, 需要重新设置请输入 n: ")
@@ -211,7 +211,7 @@ func RunCQHttp() {
 	args := []string{"-faststart"}
 	// 配置执行目录
 	cmd := exec.Command(GetCqHttpExec(), args...)
-	cmd.Dir = path.Join(utils.GetCurrentDir(), "cqhttp_storage")
+	cmd.Dir = path.Join(utils.GetCurrentDataDir(), "cqhttp_storage")
 	// 建立cqhttp的输出管道
 	cqHttpOut, err := cmd.StdoutPipe()
 	if err != nil {
@@ -233,10 +233,12 @@ func RunCQHttp() {
 		err = cmd.Start()
 		if err != nil {
 			pterm.Error.Println("go-cqhttp 启动时出现错误")
+			panic(err)
 		}
 		err = cmd.Wait()
 		if err != nil {
 			pterm.Error.Println("go-cqhttp 运行时出现错误")
+			panic(err)
 		}
 	}()
 	// 等待cqhttp启动完成

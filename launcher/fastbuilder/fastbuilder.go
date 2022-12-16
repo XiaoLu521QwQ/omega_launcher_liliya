@@ -177,6 +177,7 @@ func Run(cfg *BotConfig) {
 		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了, 它将在 20 秒后自动重启")
 		// 启动命令
 		cmd := exec.Command(GetFBExecPath(), args...)
+		cmd.Dir = path.Join(utils.GetCurrentDataDir())
 		// 建立从Fastbuilder到控制台的输出管道
 		omega_out, err := cmd.StdoutPipe()
 		if err != nil {
