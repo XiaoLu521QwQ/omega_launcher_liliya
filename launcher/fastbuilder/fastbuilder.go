@@ -272,7 +272,7 @@ func Run(cfg *BotConfig) {
 			pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
 		}
 		// 为了避免频繁请求, 崩溃后将等待20秒后重启, 可手动跳过等待
-		pterm.Warning.Print("似乎发生了错误, 要重启 Omega/Fastbuilder 吗? 请按回车确认 (20秒后会自动确认): ")
+		pterm.Warning.Print("似乎发生了错误, 20秒后会重新启动 Omega/Fastbuilder (按回车立即重启)")
 		// 等待输入或计时结束
 		select {
 		case <-readC:

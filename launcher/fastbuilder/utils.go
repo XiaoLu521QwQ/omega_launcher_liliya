@@ -6,6 +6,8 @@ import (
 	"omega_launcher/utils"
 	"path"
 	"path/filepath"
+
+	"github.com/pterm/pterm"
 )
 
 // 获取FB文件名
@@ -29,6 +31,9 @@ func GetFBExecName() string {
 		name = "phoenixbuilder-android-executable-arm64"
 	case embed_binary.Android_x86_64:
 		name = "phoenixbuilder-android-executable-x86_64"
+	}
+	if name == "" {
+		panic("尚未支持该平台" + embed_binary.GetPlantform())
 	}
 	return name
 }
@@ -61,7 +66,7 @@ func GetRemoteFBHash(url string) string {
 	}
 	hash = hashMap[GetFBExecName()]
 	if hash == "" {
-		panic("尚未支持该平台" + embed_binary.GetPlantform())
+		pterm.Error.Printfln("未能从远程仓库获取 Hash")
 	}
 	return hash
 }
