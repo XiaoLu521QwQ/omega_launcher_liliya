@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"omega_launcher/cqhttp"
+	"omega_launcher/embed_binary"
 	"omega_launcher/utils"
 	"os/exec"
 	"path"
@@ -132,7 +133,10 @@ func StartHelper() {
 
 func Run(cfg *BotConfig) {
 	// 打印警告信息, Windows新版终端存在此问题，暂时没找到解决方法（
-	pterm.Warning.Println("对于Windows新版终端, 直接点击关闭按钮会导致程序在后台持续运行")
+	plantform := embed_binary.GetPlantform()
+	if plantform == embed_binary.WINDOWS_arm64 || plantform == embed_binary.WINDOWS_x86_64 {
+		pterm.Warning.Println("对于Windows新版终端, 直接点击关闭按钮会导致程序在后台持续运行")
+	}
 	// 配置启动参数
 	args := []string{"-M", "--plain-token", cfg.FBToken, "--no-update-check", "-c", cfg.RentalCode}
 	// 是否需要租赁服密码
