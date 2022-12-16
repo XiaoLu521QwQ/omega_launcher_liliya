@@ -71,7 +71,7 @@ func getInfoFormCQConfig(configFile string) *CQHttpConfig {
 	if err := v2.Unmarshal(data, &cfg); err != nil {
 		return nil
 	}
-	if cfg.Account.Uin == "" || cfg.Account.Password == "" {
+	if cfg.Account.Uin == "" {
 		return nil
 	}
 	return cfg
@@ -82,7 +82,7 @@ func updateCQHttpConfig(configFile, address, account, password string) {
 	// 将获取的信息写入到cqhttp配置文件
 	cfgStr := strings.ReplaceAll(string(defaultConfigBytes), "[地址]", address)
 	cfgStr = strings.ReplaceAll(cfgStr, "[QQ账号]", account)
-	cfgStr = strings.ReplaceAll(cfgStr, "[QQ密码]", fmt.Sprintf("'%s'", password))
+	cfgStr = strings.ReplaceAll(cfgStr, "[QQ密码]", password)
 	err := utils.WriteFileData(configFile, []byte(cfgStr))
 	if err != nil {
 		panic(err)
@@ -204,9 +204,15 @@ func CQHttpEnablerHelper() {
 }
 
 func RunCQHttp() {
-	pterm.Warning.Println("如果长时间未启动 Omega, 请检查 config.yml 与 群服互通组件 设置的地址是否一致")
 	// 读取Omega配置
 	cfg := getOmegaConfig()
+	// 配置文件路径
+	configFile := path.Join(utils.GetCurrentDataDir(), "cqhttp_storage", "config.yml")
+	// 启动前, 将Omega配置内的IP地址同步到go-cqhttp配置文件
+	if re := getInfoFormCQConfig(configFile); re != nil {
+		updateCQHttpConfig(configFile, cfg.Configs.Address, re.Account.Uin, re.Account.Password)
+	}
+	pterm.Warning.Println("如果长时间未启动 Omega, 请检查 config.yml 与 群服互通组件 设置的地址是否一致")
 	// 配置启动参数
 	args := []string{"-faststart"}
 	// 配置执行目录
