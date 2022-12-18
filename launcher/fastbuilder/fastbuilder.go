@@ -172,13 +172,17 @@ func Run(cfg *BotConfig) {
 			cfg.FBToken = LoadCurrentFBToken()
 		}
 	}()
+	// 重启间隔
+	restartTime := 0
 	for {
+		// 记录启动时间
+		startTime := time.Now()
 		// 是否停止
 		isStopped := false
 		// 最近一次输入, 用于忽略对输入内容的重复输出
 		lastInput := ""
 		// 启动时提示信息
-		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了, 它将在 20 秒后自动重启")
+		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了, 它将在一段时间后自动重启")
 		// 启动命令
 		cmd := exec.Command(GetFBExecPath(), args...)
 		cmd.Dir = path.Join(utils.GetCurrentDataDir())
@@ -276,12 +280,18 @@ func Run(cfg *BotConfig) {
 			stop <- "stop!!"
 			pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
 		}
-		// 为了避免频繁请求, 崩溃后将等待20秒后重启, 可手动跳过等待
-		pterm.Warning.Print("似乎发生了错误, 20秒后会重新启动 Omega/Fastbuilder (按回车立即重启)")
+		// 为了避免频繁请求, 崩溃后将等待一段时间后重启, 可手动跳过等待
+		if time.Since(startTime) < time.Minute && restartTime < 1<<20 {
+			restartTime = restartTime<<1 + 1
+		} else {
+			restartTime = 0
+		}
+		pterm.Warning.Printf("似乎发生了错误, %d秒后会重新启动 Omega/Fastbuilder (按回车立即重启)", restartTime)
 		// 等待输入或计时结束
 		select {
 		case <-readC:
-		case <-time.After(time.Second * 20):
+			restartTime = 0
+		case <-time.After(time.Second * time.Duration(restartTime)):
 			fmt.Println("")
 		}
 	}
