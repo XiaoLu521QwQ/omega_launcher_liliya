@@ -215,7 +215,7 @@ func Run(cfg *BotConfig) {
 					//pterm.Error.Println("读取 Omega/Fastbuilder 输出内容时出现错误")
 					return
 				}
-				fmt.Print(readString)
+				fmt.Print(readString + "\033[0m")
 			}
 		}()
 		// 从管道中获取并打印Fastbuilder错误内容

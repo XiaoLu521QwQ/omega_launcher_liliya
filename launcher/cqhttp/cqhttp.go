@@ -231,7 +231,7 @@ func RunCQHttp() {
 			if err != nil || err == io.EOF {
 				return
 			}
-			fmt.Print("[CQHTTP] " + readString)
+			fmt.Print("[CQHTTP] " + readString + "\033[0m")
 		}
 	}()
 	// 启动并持续运行cqhttp
