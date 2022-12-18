@@ -281,8 +281,10 @@ func Run(cfg *BotConfig) {
 			pterm.Error.Println("Oh no! Fastbuilder crashed!") // ?
 		}
 		// 为了避免频繁请求, 崩溃后将等待一段时间后重启, 可手动跳过等待
-		if time.Since(startTime) < time.Minute && restartTime < 1<<20 {
-			restartTime = restartTime<<1 + 1
+		if time.Since(startTime) < time.Minute {
+			if restartTime < 1<<20 {
+				restartTime = restartTime<<1 + 1
+			}
 		} else {
 			restartTime = 0
 		}
