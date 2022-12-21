@@ -1,5 +1,5 @@
-//go:build android && amd64
-// +build android,amd64
+//go:build (android && amd64) || tag_android_x86_64
+// +build android,amd64 tag_android_x86_64
 
 package embed_binary
 
