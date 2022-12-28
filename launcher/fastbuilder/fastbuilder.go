@@ -30,7 +30,7 @@ type BotConfig struct {
 
 // 保存配置文件
 func saveConfig(cfg *BotConfig) {
-	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDir(), "服务器登录配置.json"), cfg); err != nil {
+	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDataDir(), "服务器登录配置.json"), cfg); err != nil {
 		pterm.Error.Println("无法记录配置, 不过可能不是什么大问题")
 	}
 }
@@ -64,7 +64,7 @@ func RentalServerSetup(cfg *BotConfig) *BotConfig {
 func StartHelper() {
 	// 读取配置出错则退出
 	botConfig := &BotConfig{}
-	if err := utils.GetJsonData(path.Join(utils.GetCurrentDir(), "服务器登录配置.json"), botConfig); err != nil {
+	if err := utils.GetJsonData(path.Join(utils.GetCurrentDataDir(), "服务器登录配置.json"), botConfig); err != nil {
 		panic(err)
 	}
 	// 询问是否使用上一次的配置
@@ -115,7 +115,7 @@ func StartHelper() {
 		botConfig.QGroupLinkEnable = false
 		if utils.GetInputYN() {
 			botConfig.QGroupLinkEnable = true
-			if !utils.IsDir(path.Join(utils.GetCurrentDir(), "omega_storage")) {
+			if !utils.IsDir(path.Join(utils.GetCurrentDataDir(), "omega_storage")) {
 				pterm.Warning.Printf("首次启动时配置群服互通会导致新生成的组件均为非启用状态, 要继续吗? 要请输入 y, 不要请输入 n: ")
 				if utils.GetInputYN() {
 					cqhttp.CQHttpEnablerHelper()
