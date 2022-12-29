@@ -115,7 +115,7 @@ func StartHelper() {
 		botConfig.QGroupLinkEnable = false
 		if utils.GetInputYN() {
 			botConfig.QGroupLinkEnable = true
-			if !utils.IsDir(path.Join(utils.GetCurrentDataDir(), "omega_storage")) {
+			if !utils.IsDir(path.Join(utils.GetCurrentDataDir(), "omega_storage", "配置")) {
 				pterm.Warning.Printf("首次启动时配置群服互通会导致新生成的组件均为非启用状态, 要继续吗? 要请输入 y, 不要请输入 n: ")
 				if utils.GetInputYN() {
 					cqhttp.CQHttpEnablerHelper()
