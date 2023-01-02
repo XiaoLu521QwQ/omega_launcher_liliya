@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"omega_launcher/cqhttp"
+	"omega_launcher/defines"
 	"omega_launcher/embed_binary"
 	"omega_launcher/utils"
+	"os"
 	"os/exec"
 	"path"
 	"strings"
@@ -17,38 +18,26 @@ import (
 	"golang.org/x/term"
 )
 
-// 启动器配置文件结构
-type BotConfig struct {
-	Repo             int    `json:"仓库序号"`
-	RentalCode       string `json:"租赁服号"`
-	RentalPasswd     string `json:"租赁服密码"`
-	FBToken          string `json:"FBToken"`
-	QGroupLinkEnable bool   `json:"是否开启群服互通"`
-	StartOmega       bool   `json:"是否启动Omega"`
-	UpdateFB         bool   `json:"是否更新FB"`
-}
-
 // 保存配置文件
-func saveConfig(cfg *BotConfig) {
+func saveConfig(cfg *defines.LauncherConfig) {
 	if err := utils.WriteJsonData(path.Join(utils.GetCurrentDataDir(), "服务器登录配置.json"), cfg); err != nil {
 		pterm.Error.Println("无法记录配置, 不过可能不是什么大问题")
 	}
 }
 
 // 配置Token
-func FBTokenSetup(cfg *BotConfig) *BotConfig {
+func FBTokenSetup(cfg *defines.LauncherConfig) {
 	if cfg.FBToken != "" {
 		pterm.Info.Printf("要使用上次的 Fastbuilder 账号登录吗? 要请输入 y, 需要修改请输入 n: ")
 		if utils.GetInputYN() {
-			return cfg
+			return
 		}
 	}
 	cfg.FBToken = RequestToken()
-	return cfg
 }
 
 // 配置租赁服信息
-func RentalServerSetup(cfg *BotConfig) *BotConfig {
+func RentalServerSetup(cfg *defines.LauncherConfig) {
 	pterm.Info.Printf("请输入租赁服号: ")
 	cfg.RentalCode = utils.GetValidInput()
 	pterm.Info.Printf("请输入租赁服密码 (没有则留空, 不会回显): ")
@@ -58,80 +47,9 @@ func RentalServerSetup(cfg *BotConfig) *BotConfig {
 		panic(err)
 	}
 	cfg.RentalPasswd = string(bytePassword)
-	return cfg
 }
 
-func StartHelper() {
-	// 读取配置出错则退出
-	botConfig := &BotConfig{}
-	if err := utils.GetJsonData(path.Join(utils.GetCurrentDataDir(), "服务器登录配置.json"), botConfig); err != nil {
-		panic(err)
-	}
-	// 询问是否使用上一次的配置
-	if botConfig.FBToken != "" && botConfig.RentalCode != "" {
-		pterm.Info.Printf("要使用和上次完全相同的配置启动吗? 要请输入 y, 不要请输入 n: ")
-		if utils.GetInputYN() {
-			// 更新FB
-			if botConfig.UpdateFB {
-				UpdateFB(botConfig, false)
-			}
-			// 群服互通
-			if botConfig.QGroupLinkEnable && botConfig.StartOmega {
-				cqhttp.RunCQHttp()
-			}
-			// 启动Omega或者FB
-			Run(botConfig)
-			return
-		}
-	}
-	// 配置FB更新
-	pterm.Info.Printf("需要启动器帮忙下载或更新 Fastbuilder 吗? 要请输入 y, 不要请输入 n: ")
-	botConfig.UpdateFB = false
-	if utils.GetInputYN() {
-		UpdateFB(botConfig, true)
-		botConfig.UpdateFB = true
-	} else {
-		pterm.Warning.Println("将会使用该路径的 Fastbuilder: " + GetFBExecPath())
-		time.Sleep(time.Second)
-	}
-	// 配置FB
-	botConfig = FBTokenSetup(botConfig)
-	// 配置租赁服登录
-	if botConfig.RentalCode != "" {
-		pterm.Info.Printf("要使用上次的租赁服配置吗? 要请输入 y, 不要请输入 n: ")
-		if !utils.GetInputYN() {
-			botConfig = RentalServerSetup(botConfig)
-		}
-	} else {
-		botConfig = RentalServerSetup(botConfig)
-	}
-	// 询问是否使用Omega
-	pterm.Info.Printf("要启动 Omega 还是 Fastbuilder? 启动 Omega 请输入 y, 启动 Fastbuilder 请输入 n: ")
-	botConfig.StartOmega = false
-	if utils.GetInputYN() {
-		botConfig.StartOmega = true
-		// 配置群服互通
-		pterm.Info.Printf("需要启动器帮忙配置群服互通吗? 要请输入 y, 不要请输入 n: ")
-		botConfig.QGroupLinkEnable = false
-		if utils.GetInputYN() {
-			botConfig.QGroupLinkEnable = true
-			if !utils.IsDir(path.Join(utils.GetCurrentDataDir(), "omega_storage", "配置")) {
-				pterm.Warning.Printf("首次启动时配置群服互通会导致新生成的组件均为非启用状态, 要继续吗? 要请输入 y, 不要请输入 n: ")
-				if utils.GetInputYN() {
-					cqhttp.CQHttpEnablerHelper()
-				} else {
-					botConfig.QGroupLinkEnable = false
-				}
-			} else {
-				cqhttp.CQHttpEnablerHelper()
-			}
-		}
-	}
-	// 启动Omega或者FB
-	Run(botConfig)
-}
-
-func Run(cfg *BotConfig) {
+func Run(cfg *defines.LauncherConfig) {
 	// 打印警告信息, Windows新版终端存在此问题，暂时没找到解决方法（
 	plantform := embed_binary.GetPlantform()
 	if plantform == embed_binary.WINDOWS_arm64 || plantform == embed_binary.WINDOWS_x86_64 {
@@ -186,6 +104,8 @@ func Run(cfg *BotConfig) {
 		// 启动命令
 		cmd := exec.Command(GetFBExecPath(), args...)
 		cmd.Dir = path.Join(utils.GetCurrentDataDir())
+		cmd.Stderr = os.Stderr
+		// 由于需要对内容进行处理, 所以不能直接进行io复制
 		// 建立从Fastbuilder到控制台的输出管道
 		omega_out, err := cmd.StdoutPipe()
 		if err != nil {
@@ -193,11 +113,6 @@ func Run(cfg *BotConfig) {
 		}
 		// 建立从控制台到Fastbuilder的输入管道
 		omega_in, err := cmd.StdinPipe()
-		if err != nil {
-			panic(err)
-		}
-		// 建立从Fastbuilder到控制台的错误管道
-		omega_err, err := cmd.StderrPipe()
 		if err != nil {
 			panic(err)
 		}
@@ -220,18 +135,6 @@ func Run(cfg *BotConfig) {
 					return
 				}
 				fmt.Print(readString + "\033[0m")
-			}
-		}()
-		// 从管道中获取并打印Fastbuilder错误内容
-		go func() {
-			reader := bufio.NewReader(omega_err)
-			for {
-				readString, err := reader.ReadString('\n')
-				if err != nil || err == io.EOF {
-					//pterm.Error.Println("读取 Omega/Fastbuilder 错误内容时出现错误")
-					return
-				}
-				pterm.Error.Println(readString)
 			}
 		}()
 		// 在未收到停止信号前, 启动器会一直将控制台输入的内容通过管道发送给Fastbuilder

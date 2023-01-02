@@ -54,26 +54,3 @@ func GetIntInputInScope(a, b int) int {
 		return num
 	}
 }
-
-// 错误示范，函数退出后协程仍然在等待输入(((
-/*
-func GetInputYNTimeLimit(sec int) bool {
-	// 建立频道
-	chn := make(chan bool)
-	// 计时器
-	timeout, cancel := context.WithTimeout(context.Background(), time.Duration(sec)*time.Second)
-	defer cancel()
-	// 将用户输入结果传入chn
-	go func() {
-		chn <- GetInputYN()
-	}()
-	// 返回输入结果或超时处理
-	select {
-	case chn := <-chn:
-		return chn
-	case <-timeout.Done():
-		fmt.Println("<超时自动确认>")
-		return true
-	}
-}
-*/

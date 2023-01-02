@@ -7,6 +7,6 @@ import (
 	_ "embed"
 )
 
-//go:embed go-cqhttp_windows_arm64.exe.brotli
+//go:embed assets/go-cqhttp_windows_arm64.exe.brotli
 var embedding_cqhttp []byte
 var PLANTFORM = WINDOWS_arm64

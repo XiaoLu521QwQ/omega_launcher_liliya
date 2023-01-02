@@ -7,6 +7,6 @@ import (
 	_ "embed"
 )
 
-//go:embed go-cqhttp_darwin_amd64.brotli
+//go:embed assets/go-cqhttp_darwin_amd64.brotli
 var embedding_cqhttp []byte
 var PLANTFORM = MACOS_x86_64
