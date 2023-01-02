@@ -167,6 +167,11 @@ func CQHttpEnablerHelper(botCfg *defines.LauncherConfig) {
 }
 
 func Run(botCfg *defines.LauncherConfig) {
+	// 不存在cqhttp目录则退出
+	if !utils.IsDir(path.Join(utils.GetCurrentDataDir(), "cqhttp_storage")) {
+		pterm.Error.Println("cqhttp_storage 目录不存在, 请使用启动器配置一次群服互通")
+		panic("需要配置群服互通")
+	}
 	// 读取Omega配置
 	cfg := getOmegaConfig()
 	// 配置文件路径
