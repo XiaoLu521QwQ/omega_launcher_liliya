@@ -13,11 +13,14 @@ import (
 	"github.com/pterm/pterm"
 )
 
+//go:embed VERSION
+var version []byte
+
 func main() {
 	// 添加启动信息
 	pterm.DefaultBox.Println("https://github.com/Liliya233/omega_launcher")
-	pterm.Info.Printfln("Omega Launcher - Author: CMA2401PT")
-	pterm.Info.Printfln("Modified By Liliya233")
+	pterm.Info.Println("Omega Launcher", pterm.Yellow("(", string(version), ")"))
+	pterm.Info.Println("Author: CMA2401PT, Modified: Liliya233")
 	// 确保目录可用
 	if err := os.Chdir(utils.GetCurrentDir()); err != nil {
 		panic(err)
