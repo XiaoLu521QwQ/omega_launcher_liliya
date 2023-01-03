@@ -28,9 +28,9 @@ func GetFBExecName() string {
 	case embed_binary.MACOS_x86_64:
 		name = "phoenixbuilder-macos-x86_64"
 	case embed_binary.Android_arm64:
-		name = "phoenixbuilder-android-executable-arm64"
+		name = "phoenixbuilder-android-termux-shared-executable-arm64"
 	case embed_binary.Android_x86_64:
-		name = "phoenixbuilder-android-executable-x86_64"
+		name = "phoenixbuilder-android-termux-shared-executable-x86_64"
 	}
 	if name == "" {
 		panic("尚未支持该平台" + embed_binary.GetPlantform())
