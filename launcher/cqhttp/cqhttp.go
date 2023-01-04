@@ -138,7 +138,7 @@ func CQHttpEnablerHelper(botCfg *defines.LauncherConfig) {
 		panic(err)
 	}
 	// 无法创建目录则退出
-	if !utils.MkDir(path.Join(utils.GetCurrentDataDir(), "cqhttp_storage")) {
+	if !utils.MkDir(path.Join(utils.GetCurrentDir(), "cqhttp_storage")) {
 		panic("无法创建 cqhttp_storage 目录")
 	}
 	// 提示与确认
@@ -146,7 +146,7 @@ func CQHttpEnablerHelper(botCfg *defines.LauncherConfig) {
 	pterm.Info.Print("现在你可以进行文件上传的操作了, 输入 y 继续配置 go-cqhttp: ")
 	utils.GetInputYN()
 	// 配置文件路径
-	cqCfg := path.Join(utils.GetCurrentDataDir(), "cqhttp_storage", "config.yml")
+	cqCfg := path.Join(utils.GetCurrentDir(), "cqhttp_storage", "config.yml")
 	// 如果go-cqhttp配置文件不存在, 则执行初始化操作
 	if utils.IsFile(cqCfg) {
 		pterm.Info.Print("已读取到 go-cqhttp 配置文件, 要使用吗? 使用请输入 y, 需要重新设置请输入 n: ")
@@ -168,14 +168,14 @@ func CQHttpEnablerHelper(botCfg *defines.LauncherConfig) {
 
 func Run(botCfg *defines.LauncherConfig) {
 	// 不存在cqhttp目录则退出
-	if !utils.IsDir(path.Join(utils.GetCurrentDataDir(), "cqhttp_storage")) {
+	if !utils.IsDir(path.Join(utils.GetCurrentDir(), "cqhttp_storage")) {
 		pterm.Error.Println("cqhttp_storage 目录不存在, 请使用启动器配置一次群服互通")
 		panic("需要配置群服互通")
 	}
 	// 读取Omega配置
 	cfg := getOmegaConfig()
 	// 配置文件路径
-	cqCfg := path.Join(utils.GetCurrentDataDir(), "cqhttp_storage", "config.yml")
+	cqCfg := path.Join(utils.GetCurrentDir(), "cqhttp_storage", "config.yml")
 	// 启动前, 将Omega配置内的IP地址同步到go-cqhttp配置文件
 	if re := getInfoFormCQConfig(cqCfg); re != nil {
 		updateConfig(cqCfg, cfg.Configs.Address, re.Account.Uin, re.Account.Password)
@@ -185,7 +185,7 @@ func Run(botCfg *defines.LauncherConfig) {
 	args := []string{"-faststart"}
 	// 配置执行目录
 	cmd := exec.Command(GetCqHttpExec(), args...)
-	cmd.Dir = path.Join(utils.GetCurrentDataDir(), "cqhttp_storage")
+	cmd.Dir = path.Join(utils.GetCurrentDir(), "cqhttp_storage")
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	cqhttp_out, err := cmd.StdoutPipe()
