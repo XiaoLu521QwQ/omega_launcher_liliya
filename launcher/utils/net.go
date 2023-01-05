@@ -7,7 +7,7 @@ import (
 
 // 获取可用端口
 func GetAvailablePort() (int, error) {
-	address, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:0", "0.0.0.0"))
+	address, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:0", "127.0.0.1"))
 	if err != nil {
 		return 0, err
 	}
@@ -28,7 +28,6 @@ func IsAddressAvailable(address string) bool {
 		// log.Infof("port %s is taken: %s", address, err)
 		return false
 	}
-
 	defer listener.Close()
 	return true
 }

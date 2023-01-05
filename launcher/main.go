@@ -22,6 +22,7 @@ func main() {
 	pterm.Info.Println("Author: CMA2401PT, Modified: Liliya233")
 	// 确保目录可用
 	if err := os.Chdir(utils.GetCurrentDir()); err != nil {
+		pterm.Error.Printf("读取当前目录时出现问题")
 		panic(err)
 	}
 	// 启动
@@ -38,7 +39,7 @@ func main() {
 			if launcherConfig.UpdateFB {
 				fastbuilder.Update(launcherConfig, false)
 			} else {
-				fastbuilder.HasExecFile()
+				fastbuilder.CheckExecFile()
 			}
 			// 群服互通
 			if launcherConfig.QGroupLinkEnable && launcherConfig.StartOmega {
@@ -56,7 +57,7 @@ func main() {
 		fastbuilder.Update(launcherConfig, true)
 		launcherConfig.UpdateFB = true
 	} else {
-		fastbuilder.HasExecFile()
+		fastbuilder.CheckExecFile()
 	}
 	// 配置FB
 	fastbuilder.FBTokenSetup(launcherConfig)
@@ -87,6 +88,7 @@ func main() {
 			if !utils.IsDir(path.Join(utils.GetCurrentDataDir(), "omega_storage", "配置")) {
 				pterm.Warning.Printf("首次启动时配置群服互通会导致新生成的组件均为非启用状态, 要继续吗? 要请输入 y, 不要请输入 n: ")
 				if utils.GetInputYN() {
+					utils.MkDir(path.Join(utils.GetCurrentDataDir(), "omega_storage", "配置", "群服互通"))
 					cqhttp.CQHttpEnablerHelper(launcherConfig)
 				} else {
 					launcherConfig.QGroupLinkEnable = false
