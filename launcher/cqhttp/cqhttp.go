@@ -123,6 +123,8 @@ func getOmegaConfig() *defines.ComponentConfig {
 			panic(err)
 		}
 	}
+	// 将组件修改为开启状态
+	cfg.Disabled = false
 	// 更新Omega群服互通组件配置
 	err := utils.WriteJsonData(fp, cfg)
 	if err != nil {
