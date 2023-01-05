@@ -39,7 +39,7 @@ func GetFBExecName() string {
 }
 
 // 获取FB文件路径
-func GetFBExecPath() string {
+func getFBExecPath() string {
 	path := path.Join(utils.GetCurrentDir(), GetFBExecName())
 	result, err := filepath.Abs(path)
 	if err != nil {
@@ -49,13 +49,13 @@ func GetFBExecPath() string {
 }
 
 // 获取本地FB文件Hash
-func GetCurrentFBHash() string {
-	exec := GetFBExecPath()
+func getCurrentFBHash() string {
+	exec := getFBExecPath()
 	return utils.GetFileHash(exec)
 }
 
 // 获取远程仓库的Hash
-func GetRemoteFBHash(url string) string {
+func getRemoteFBHash(url string) string {
 	// 获取文件内容
 	jsonData := utils.DownloadSmallContent(url + "hashes.json")
 	// 解析文件内容
@@ -72,8 +72,8 @@ func GetRemoteFBHash(url string) string {
 }
 
 // 检查当前目录是否存在FB执行文件, 不存在时将会panic
-func HasExecFile() {
-	if utils.IsFile(GetFBExecPath()) {
+func CheckExecFile() {
+	if utils.IsFile(getFBExecPath()) {
 		pterm.Success.Println("已从当前目录读取到 Fastbuilder")
 	} else {
 		pterm.Error.Println("请先下载 Fastbuilder 至当前目录")

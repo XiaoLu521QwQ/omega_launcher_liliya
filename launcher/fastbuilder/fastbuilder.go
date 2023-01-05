@@ -33,7 +33,7 @@ func FBTokenSetup(cfg *defines.LauncherConfig) {
 			return
 		}
 	}
-	cfg.FBToken = RequestToken()
+	cfg.FBToken = requestToken()
 }
 
 // 配置租赁服信息
@@ -87,7 +87,7 @@ func Run(cfg *defines.LauncherConfig) {
 				saveConfig(cfg)
 				return
 			}
-			cfg.FBToken = LoadCurrentFBToken()
+			cfg.FBToken = loadCurrentFBToken()
 		}
 	}()
 	// 重启间隔
@@ -102,7 +102,7 @@ func Run(cfg *defines.LauncherConfig) {
 		// 启动时提示信息
 		pterm.Success.Println("如果 Omega/Fastbuilder 崩溃了, 它将在一段时间后自动重启")
 		// 启动命令
-		cmd := exec.Command(GetFBExecPath(), args...)
+		cmd := exec.Command(getFBExecPath(), args...)
 		cmd.Dir = path.Join(utils.GetCurrentDataDir())
 		cmd.Stderr = os.Stderr
 		// 由于需要对内容进行处理, 所以不能直接进行io复制

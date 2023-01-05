@@ -39,7 +39,7 @@ func download() {
 	var execBytes []byte
 	var err error
 	// 获取写入路径与远程仓库url
-	path := GetFBExecPath()
+	path := getFBExecPath()
 	url := STORAGE_REPO + GetFBExecName()
 	// 下载
 	compressedData := utils.DownloadSmallContent(url)
@@ -57,8 +57,8 @@ func download() {
 func Update(cfg *defines.LauncherConfig, reselect bool) {
 	selectRepo(cfg, reselect)
 	pterm.Warning.Println("正在从指定仓库获取更新信息..")
-	targetHash := GetRemoteFBHash(STORAGE_REPO)
-	currentHash := GetCurrentFBHash()
+	targetHash := getRemoteFBHash(STORAGE_REPO)
+	currentHash := getCurrentFBHash()
 	//fmt.Println(targetHash)
 	//fmt.Println(currentHash)
 	if targetHash == currentHash {

@@ -14,7 +14,7 @@ import (
 )
 
 // 加载现有的token
-func LoadCurrentFBToken() string {
+func loadCurrentFBToken() string {
 	// 获取目录
 	homedir, err := os.UserHomeDir()
 	if err != nil {
@@ -32,9 +32,9 @@ func LoadCurrentFBToken() string {
 }
 
 // 请求token
-func RequestToken() string {
+func requestToken() string {
 	// 尝试加载现有的token
-	currentFbToken := LoadCurrentFBToken()
+	currentFbToken := loadCurrentFBToken()
 	// 读取成功, 提示是否使用
 	if currentFbToken != "" && strings.HasPrefix(currentFbToken, "w9/BeLNV/9") {
 		pterm.Info.Printf("要使用现有的 Fastbuilder 账户登录吗? 使用现有账户请输入 y, 使用新账户请输入 n: ")
