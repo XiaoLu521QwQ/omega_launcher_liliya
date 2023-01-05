@@ -8,7 +8,6 @@ import (
 	"omega_launcher/utils"
 	"os"
 	"path"
-	"time"
 
 	"github.com/pterm/pterm"
 )
@@ -38,6 +37,8 @@ func main() {
 			// 更新FB
 			if launcherConfig.UpdateFB {
 				fastbuilder.Update(launcherConfig, false)
+			} else {
+				fastbuilder.HasExecFile()
 			}
 			// 群服互通
 			if launcherConfig.QGroupLinkEnable && launcherConfig.StartOmega {
@@ -55,8 +56,7 @@ func main() {
 		fastbuilder.Update(launcherConfig, true)
 		launcherConfig.UpdateFB = true
 	} else {
-		pterm.Warning.Println("将会使用该路径的 Fastbuilder: " + fastbuilder.GetFBExecPath())
-		time.Sleep(time.Second / 2)
+		fastbuilder.HasExecFile()
 	}
 	// 配置FB
 	fastbuilder.FBTokenSetup(launcherConfig)

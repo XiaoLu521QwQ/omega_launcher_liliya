@@ -70,3 +70,14 @@ func GetRemoteFBHash(url string) string {
 	}
 	return hash
 }
+
+// 检查当前目录是否存在FB执行文件, 不存在时将会panic
+func HasExecFile() {
+	if utils.IsFile(GetFBExecPath()) {
+		pterm.Success.Println("已从当前目录读取到现有的 Fastbuilder")
+	} else {
+		pterm.Error.Println("请先下载 Fastbuilder 至当前目录")
+		pterm.Error.Println("所需 Fastbuilder 的文件名为: " + GetFBExecName())
+		panic("当前目录不存在 Fastbuilder")
+	}
+}
