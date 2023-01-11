@@ -19,7 +19,7 @@ func main() {
 	// 添加启动信息
 	pterm.DefaultBox.Println("https://github.com/Liliya233/omega_launcher")
 	pterm.Info.Println("Omega Launcher", pterm.Yellow("(", string(version), ")"))
-	pterm.Info.Println("Author: CMA2401PT, Modified: Liliya233")
+	pterm.Info.Println("Author: CMA2401PT, Modified by Liliya233")
 	// 确保目录可用
 	if err := os.Chdir(utils.GetCurrentDir()); err != nil {
 		pterm.Error.Printf("读取当前目录时出现问题")
